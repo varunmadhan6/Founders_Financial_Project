@@ -4,33 +4,33 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const Home = () => {
     // Sample data for Boeing stock performance
     const weekData = [
-        { date: 'Mon', price: 189.42 },
-        { date: 'Tue', price: 192.57 },
-        { date: 'Wed', price: 195.14 },
-        { date: 'Thu', price: 196.82 },
-        { date: 'Fri', price: 198.35 }
+        { date: 'Mon', Price: 189.42 },
+        { date: 'Tue', Price: 192.57 },
+        { date: 'Wed', Price: 195.14 },
+        { date: 'Thu', Price: 196.82 },
+        { date: 'Fri', Price: 198.35 }
     ];
 
     const monthData = [
-        { date: 'Week 1', price: 185.25 },
-        { date: 'Week 2', price: 189.42 },
-        { date: 'Week 3', price: 162.36 },
-        { date: 'Week 4', price: 198.35 }
+        { date: 'Week 1', Price: 185.25 },
+        { date: 'Week 2', Price: 189.42 },
+        { date: 'Week 3', Price: 162.36 },
+        { date: 'Week 4', Price: 198.35 }
     ];
 
     const yearData = [
-        { date: 'Jan', price: 167.85 },
-        { date: 'Feb', price: 175.32 },
-        { date: 'Mar', price: 182.46 },
-        { date: 'Apr', price: 179.58 },
-        { date: 'May', price: 143.74 },
-        { date: 'Jun', price: 185.62 },
-        { date: 'Jul', price: 188.91 },
-        { date: 'Aug', price: 123.45 },
-        { date: 'Sep', price: 189.75 },
-        { date: 'Oct', price: 192.36 },
-        { date: 'Nov', price: 195.84 },
-        { date: 'Dec', price: 198.35 }
+        { date: 'Jan', Price: 167.85 },
+        { date: 'Feb', Price: 175.32 },
+        { date: 'Mar', Price: 182.46 },
+        { date: 'Apr', Price: 179.58 },
+        { date: 'May', Price: 143.74 },
+        { date: 'Jun', Price: 185.62 },
+        { date: 'Jul', Price: 188.91 },
+        { date: 'Aug', Price: 123.45 },
+        { date: 'Sep', Price: 189.75 },
+        { date: 'Oct', Price: 192.36 },
+        { date: 'Nov', Price: 195.84 },
+        { date: 'Dec', Price: 198.35 }
     ];
 
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -83,7 +83,7 @@ const Home = () => {
                                     />
                                     <Line 
                                         type="monotone" 
-                                        dataKey="price" 
+                                        dataKey="Price" 
                                         stroke={slides[currentSlide].color} 
                                         strokeWidth={3} 
                                         dot={{ fill: slides[currentSlide].color, r: 4 }}
