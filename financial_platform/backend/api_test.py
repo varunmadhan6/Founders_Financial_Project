@@ -13,6 +13,7 @@ def get_cached_stock_data(symbol, timestamp):
     try:
         stock = yf.Ticker(symbol)
         info = stock.info
+        print(info)
         
         if not info or 'longName' not in info:
             raise ValueError(f"No data found for symbol: {symbol}")
