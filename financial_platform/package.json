@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "flask": "^0.2.10",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "yfinance": "^0.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
