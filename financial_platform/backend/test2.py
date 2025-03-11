@@ -54,5 +54,41 @@ def add_stocks():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/stocks', methods=['GET'])
+def get_stocks():
+    try:
+        symbol = request.args.get("symbol")  # Get the stock symbol from query parameters
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        if symbol:
+            cur.execute("SELECT * FROM stocks WHERE symbol = %s", (symbol,))
+        else:
+            cur.execute("SELECT * FROM stocks")
+
+        stocks = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        stock_list = []
+        for stock in stocks:
+            stock_list.append({
+                "id": stock[0],
+                "symbol": stock[1],
+                "name": stock[2],
+                "sector": stock[3],
+                "industry": stock[4],
+                "market_cap": stock[5],
+                "price": stock[6],
+                "pe_ratio": stock[7],
+                "dividend_yield": stock[8],
+                "last_updated": stock[9]
+            })
+        print(stock_list)
+        return jsonify({"stocks": stock_list})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
