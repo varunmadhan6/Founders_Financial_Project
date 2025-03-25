@@ -24,21 +24,6 @@ const Card = ({ children }) => (
 const PortfolioDashboard = () => {
   return (
     <div className="relative w-full h-screen bg-cover bg-center" style={{backgroundImage: "url(public/background.png)" }}>
-      {/* Toolbar */}
-      <nav className="flex justify-start items-center p-10 bg-black bg-opacity-70 text-white space-x-6">
-        <div className="text-xl font-bold mr-auto">Portfolio Dashboard</div>
-        <a href="#" className="hover:underline">Mission</a>
-        <a href="#" className="hover:underline">About Us</a>
-        <div className="relative group">
-          <button className="hover:underline">Services ▼</button>
-          <div className="absolute hidden group-hover:block bg-white text-black mt-2 rounded shadow-lg w-48">
-            <a href="#" className="block px-4 py-2 hover:bg-gray-200">Newsletter</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-200">Company Analysis</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-200">Stock Analysis</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-200">Portfolio Management</a>
-          </div>
-        </div>
-      </nav>
       
       <div className="grid grid-cols-2 gap-4 p-10 bg-black bg-opacity-60 h-full">
         {/* Stock List */}
