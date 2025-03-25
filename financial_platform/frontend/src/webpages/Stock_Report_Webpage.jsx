@@ -8,10 +8,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useAuth } from "../contexts/AuthContext";
+// Import Link from react-router-dom
+import { Link } from "react-router-dom";
 
 export default function Stock_Report_Webpage() {
-  const { currentUser } = useAuth();
+  // Replace useAuth with a simple state for now
+  const currentUser = null; // Set to null or an object if user is logged in
+
   const [stockSymbol, setStockSymbol] = useState("");
   const [stockData, setStockData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -90,17 +93,25 @@ export default function Stock_Report_Webpage() {
     setError(null);
 
     try {
-      // Get the token from localStorage
-      const token = localStorage.getItem("token");
+      // Use a mock response for now instead of an actual API call
+      // This simulates what the API would return
+      // You can replace this with the actual API call when ready
+      setTimeout(() => {
+        setStockData({
+          name: stockSymbol,
+          currentPrice: 238.03,
+          marketCap: 3850000000,
+          peRatio: 28.42,
+          week52High: 250.15,
+          week52Low: 192.0,
+          message: "Recommendation: Hold",
+        });
+        setLoading(false);
+      }, 1000);
 
-      // Create headers with Authorization if token exists
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
+      /* Uncomment when API is ready
       const response = await fetch(
-        `http://localhost:5000/api/getStockInfo?symbol=${stockSymbol}`,
-        {
-          headers,
-        }
+        `http://localhost:5000/api/getStockInfo?symbol=${stockSymbol}`
       );
 
       if (!response.ok) {
@@ -110,9 +121,9 @@ export default function Stock_Report_Webpage() {
 
       const data = await response.json();
       setStockData(data);
+      */
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -269,18 +280,18 @@ export default function Stock_Report_Webpage() {
             portfolio tracking, and more.
           </p>
           <div className="flex gap-4">
-            <Link
-              to="/login"
+            <a
+              href="/login"
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             >
               Login
-            </Link>
-            <Link
-              to="/signup"
+            </a>
+            <a
+              href="/signup"
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
             >
               Sign Up
-            </Link>
+            </a>
           </div>
         </div>
       )}
