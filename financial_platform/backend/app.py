@@ -138,9 +138,6 @@ def get_stock_info():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route('/api/register', methods=['OPTIONS'])
-def handle_options():
-    return '', 200
 
 # User registration
 @app.route('/api/register', methods=['POST'])
