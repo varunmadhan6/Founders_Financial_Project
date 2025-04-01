@@ -4,6 +4,7 @@ import Navbar from "./webpages/Navbar.jsx";
 import Stock_Report_Webpage from "./webpages/Stock_Report_Webpage.jsx";
 import { Route, Routes } from "react-router-dom";
 import StockInfo from "./components/api_test.jsx";
+import MarketPulseDashboard from "./components/MarketPulse.jsx";
 export default function App() {
   return (
     <>
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/stock-report" element={<Stock_Report_Webpage />} />
         <Route path="/db" element={<StockInfo />} />
+        <Route path="/market-pulse" element={<MarketPulseDashboard />} />
       </Routes>
     </>
   );
