@@ -19,7 +19,6 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
-          {/* <Route path="/db" element={<StockInfo />} /> */}
           <Route path="/market-pulse" element={<MarketPulseDashboard />} />
         </Routes>
       </>
