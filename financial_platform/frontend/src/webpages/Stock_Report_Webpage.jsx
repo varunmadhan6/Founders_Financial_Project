@@ -1,87 +1,226 @@
-import React, { useState, useEffect } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-// Import Link from react-router-dom
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+ 
+// export default function Stock_Report_Webpage() {
+//   // For demonstration, currentUser is null (or an object if logged in)
+//   const currentUser = null;
+
+//   const [symbol, setSymbol] = useState("AAPL"); // Default stock symbol
+//   const [stockData, setStockData] = useState([]);
+//   const [currentSlide, setCurrentSlide] = useState(0);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+ 
+//   const periods = ["day", "week", "month", "year"];
+ 
+//    // Colors for each time period
+//   const periodColors = [
+//     "#d12e78", // Day
+//     "#8884d8", // Week
+//     "#82ca9d", // Month
+//     "#ffc658"  // Year
+//   ];
+
+
+//    // Auto-change slides every 5 seconds
+//    useEffect(() => {
+//     fetchStockData(symbol, periods[currentSlide]);
+
+//     // Auto-switch slides every 5 seconds
+//     const timer = setInterval(() => {
+//       setCurrentSlide((prevSlide) => {
+//         const nextSlide = (prevSlide + 1) % periods.length;
+//         fetchStockData(symbol, periods[nextSlide]); // Fetch data based on the next period
+//         return nextSlide;
+//       });
+//     }, 5000);
+
+//     return () => clearInterval(timer); // Cleanup timer when component unmounts
+//   }, [symbol, currentSlide]);
+
+//   // Fetch stock data
+//   async function fetchStockData(stockSymbol, period) {
+//     setLoading(true);
+//     setError("");
+
+//     try {
+//       const response = await fetch(`http://127.0.0.1:5000/api/stock_report/getStockHistory?symbol=${stockSymbol}&period=${period}`);
+//       const data = await response.json();
+
+//       if (data.error) {
+//         setError(data.error);
+//         setStockData([]);
+//       } else {
+//         setStockData(data.data);
+//       }
+//     } catch (err) {
+//       setError("Failed to fetch stock data.");
+//     }
+
+//     setLoading(false);
+//   }
+
+//   function handleSlideChange(index) {
+//     setCurrentSlide(index);
+//     fetchStockData(symbol, periods[index]); // Fetch data based on the selected period
+//   }
+
+//   // Handle form submission (fetch stock data when user searches)
+//   function handleSubmit(e) {
+//     e.preventDefault();
+//     if (symbol.trim()) {
+//       fetchStockData(symbol, periods[currentSlide]); // Fetch new data for the selected period
+//     }
+//   }
+
+//   return (
+     
+//     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+
+//       <div className="flex justify-between items-center mb-6">
+//         <h1 className="text-3xl font-bold">Stock Report</h1>
+//         <form className="rounded-lg bg-gray-50 w-1/2" onSubmit={handleSubmit}>
+//            <div className="flex space-x-2">
+//              <input
+//                type="text"
+//                placeholder="Enter Stock Symbol (e.g., AAPL)"
+//                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                value={symbol}
+//                onChange={(e) => setSymbol(e.target.value)}
+//              />
+//              <button 
+//                type="submit" 
+//                className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+//              >
+//                Search
+//              </button>
+//            </div>
+//          </form>
+//        </div>
+
+//        <h1 className="text-5xl font-extrabold text-center mb-8 bg-clip-text">{symbol}</h1>
+
+//        {loading ? (
+//          <p className="text-center text-lg text-gray-600">Loading stock data...</p>
+//        ) : error ? (
+//          <p className="text-center text-lg text-red-600">{error}</p>
+//        ) : (
+//          <>
+//            {/* Stock Price Chart */}
+//            <div className="mb-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
+//              <h2 className="text-xl font-semibold mb-2 text-center">Past {periods[currentSlide]}</h2>
+//              <h3 className="text-center mb-4 text-gray-600">{symbol} Stock</h3>
+//              <div className="w-full h-56">
+//                <ResponsiveContainer width="100%" height="100%">
+//                  <LineChart data={stockData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+//                    <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+//                    <XAxis dataKey="time" stroke="#666" tickMargin={5} interval="preserveStartEnd" />
+//                    <YAxis stroke="#666" />
+//                    <Tooltip 
+//                      contentStyle={{ backgroundColor: "#f9f9f9", borderColor: "#ddd", color: "#333" }} 
+//                      labelStyle={{ color: "#333" }}
+//                    />
+//                    <Line 
+//                      type="monotone" 
+//                      dataKey="price" 
+//                      stroke={periodColors[currentSlide]} // Use the color based on the slide
+//                      strokeWidth={3} 
+//                      dot={{ fill: periodColors[currentSlide], r: 4 }}
+//                      activeDot={{ r: 6 }}
+//                    />
+//                  </LineChart>
+//                </ResponsiveContainer>
+//              </div>
+//              <div className="flex justify-center mt-4 space-x-2">
+//                {periods.map((_, index) => (
+//                  <button 
+//                    key={index}
+//                    className={`h-3 w-3 rounded-full transition ${currentSlide === index ? "bg-blue-600" : "bg-gray-400 hover:bg-gray-500"}`}
+//                    onClick={() => handleSlideChange(index)}
+//                  />
+//                ))}
+//              </div>
+//            </div>
+//          </>
+//        )}
+//      </div>
+
+//     );
+//   }
 
 export default function Stock_Report_Webpage() {
-  // Replace useAuth with a simple state for now
-  const currentUser = null; // Set to null or an object if user is logged in
 
+  const currentUser = null;
+
+  // State for the stock symbol input and fetched stock info
   const [stockSymbol, setStockSymbol] = useState("");
+  const [selectedStock, setSelectedStock] = useState(""); // Symbol used for fetching live data
   const [stockData, setStockData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sample data for chart displays
-  const dayData = [
-    { time: "09:30 AM", price: 241.67 },
-    { time: "10:30 AM", price: 242.1 },
-    { time: "11:30 AM", price: 241.5 },
-    { time: "12:30 PM", price: 240.8 },
-    { time: "01:30 PM", price: 239.9 },
-    { time: "02:30 PM", price: 239.2 },
-    { time: "03:30 PM", price: 238.5 },
-    { time: "04:00 PM", price: 238.16 },
-  ];
+  // States for live chart data
+  const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState(null);
 
-  const weekData = [
-    { time: "Feb 24, 2025", price: 247.17 },
-    { time: "Feb 25, 2025", price: 247.04 },
-    { time: "Feb 26, 2025", price: 240.36 },
-    { time: "Feb 27, 2025", price: 237.3 },
-    { time: "Feb 28, 2025", price: 241.84 },
-    { time: "Mar 3, 2025", price: 238.03 },
-  ];
+  // Define available periods and corresponding titles/colors for the chart
+  const periods = ["day", "week", "month", "year"];
+  const periodTitles = {
+    day: "Past Day",
+    week: "Past Week",
+    month: "Past Month",
+    year: "Past Year",
+  };
+  const periodColors = {
+    day: "#d12e78",
+    week: "#8884d8",
+    month: "#82ca9d",
+    year: "#ffc658",
+  };
 
-  const monthData = [
-    { time: "Week 1", price: 227.56 },
-    { time: "Week 2", price: 231.78 },
-    { time: "Week 3", price: 235.9 },
-    { time: "Week 4", price: 247.04 },
-    { time: "Current", price: 238.03 },
-  ];
-
-  const yearData = [
-    { time: "Mar 2024", price: 192.0 },
-    { time: "Apr 2024", price: 195.2 },
-    { time: "May 2024", price: 198.1 },
-    { time: "Jun 2024", price: 202.5 },
-    { time: "Jul 2024", price: 207.8 },
-    { time: "Aug 2024", price: 212.3 },
-    { time: "Sep 2024", price: 218.9 },
-    { time: "Oct 2024", price: 225.4 },
-    { time: "Nov 2024", price: 230.6 },
-    { time: "Dec 2024", price: 250.15 },
-    { time: "Jan 2025", price: 243.85 },
-    { time: "Feb 2025", price: 241.84 },
-    { time: "Mar 2025", price: 238.03 },
-  ];
-
+  // State for the currently selected period (slide)
   const [currentSlide, setCurrentSlide] = useState(0);
-  const slides = [
-    { data: dayData, title: "Past Day", color: "#d12e78" },
-    { data: weekData, title: "Past Week", color: "#8884d8" },
-    { data: monthData, title: "Past Month", color: "#82ca9d" },
-    { data: yearData, title: "Past Year", color: "#ffc658" },
-  ];
 
+  // Auto-change slides (periods) every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
-    }, 5000); // Change slide every 5 seconds
-
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % periods.length);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
-  const fetchStockData = async (e) => {
+  // Whenever the selected stock or the period changes, fetch live chart data
+  useEffect(() => {
+    if (selectedStock) {
+      fetchChartData(selectedStock, periods[currentSlide]);
+    }
+  }, [selectedStock, currentSlide]);
+
+  // Function to fetch live chart data based on the stock symbol and period
+  async function fetchChartData(symbol, period) {
+    setChartLoading(true);
+    setChartError(null);
+    try {
+      const response = await fetch(
+        await fetch(`http://127.0.0.1:5000/api/stock_report/getStockHistory?symbol=${stockSymbol}&period=${period}`)
+      );
+      const data = await response.json();
+      if (data.error) {
+        setChartError(data.error);
+        setChartData([]);
+      } else {
+        setChartData(data.data);
+      }
+    } catch (err) {
+      setChartError("Failed to fetch chart data.");
+      setChartData([]);
+    }
+    setChartLoading(false);
+  }
+
+  // Function to fetch stock info when the user submits the search form
+  const fetchStockInfo = async (e) => {
     e.preventDefault();
 
     if (!stockSymbol) {
@@ -91,11 +230,12 @@ export default function Stock_Report_Webpage() {
 
     setLoading(true);
     setError(null);
+    // Set the symbol to fetch live data for the chart
+    setSelectedStock(stockSymbol);
 
     try {
-      // Use a mock response for now instead of an actual API call
-      // This simulates what the API would return
-      // You can replace this with the actual API call when ready
+      // Simulated API call for stock information.
+      // Replace this simulated call with your actual API call when ready.
       setTimeout(() => {
         setStockData({
           name: stockSymbol,
@@ -108,20 +248,6 @@ export default function Stock_Report_Webpage() {
         });
         setLoading(false);
       }, 1000);
-
-      /* Uncomment when API is ready
-      const response = await fetch(
-        `http://localhost:5000/api/getStockInfo?symbol=${stockSymbol}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch stock data");
-      }
-
-      const data = await response.json();
-      setStockData(data);
-      */
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -133,7 +259,7 @@ export default function Stock_Report_Webpage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Stock Report</h1>
 
-        <form className="rounded-lg bg-gray-50 w-1/2" onSubmit={fetchStockData}>
+        <form className="rounded-lg bg-gray-50 w-1/2" onSubmit={fetchStockInfo}>
           <div className="flex space-x-2">
             <input
               type="text"
@@ -203,49 +329,64 @@ export default function Stock_Report_Webpage() {
         </h1>
       )}
 
-      {/* Chart section - always visible for demonstration */}
+      {/* Live Chart Section */}
       <div className="mb-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
         <h2 className="text-xl font-semibold mb-2 text-center">
-          {slides[currentSlide].title}
+          {periodTitles[periods[currentSlide]]}
         </h2>
         <h3 className="text-center mb-4 text-gray-600">
-          {stockData ? `${stockData.name} Stock` : "Sample Stock Data"}
+          {stockData ? `${stockData.name} Stock` : "Live Stock Data"}
         </h3>
         <div className="w-full h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={slides[currentSlide].data}
-              margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-              <XAxis
-                dataKey="time"
-                stroke="#666"
-                tickMargin={5}
-                interval="preserveStartEnd"
-              />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#f9f9f9",
-                  borderColor: "#ddd",
-                  color: "#333",
-                }}
-                labelStyle={{ color: "#333" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="price"
-                stroke={slides[currentSlide].color}
-                strokeWidth={3}
-                dot={{ fill: slides[currentSlide].color, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {chartLoading ? (
+            <p className="text-center text-lg text-gray-600">
+              Loading chart data...
+            </p>
+          ) : chartError ? (
+            <p className="text-center text-lg text-red-600">{chartError}</p>
+          ) : chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#666"
+                  tickMargin={5}
+                  interval="preserveStartEnd"
+                />
+                <YAxis stroke="#666" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#f9f9f9",
+                    borderColor: "#ddd",
+                    color: "#333",
+                  }}
+                  labelStyle={{ color: "#333" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke={periodColors[periods[currentSlide]]}
+                  strokeWidth={3}
+                  dot={{
+                    fill: periodColors[periods[currentSlide]],
+                    r: 4,
+                  }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-center text-lg text-gray-600">
+              No chart data available.
+            </p>
+          )}
         </div>
         <div className="flex justify-center mt-4 space-x-2">
-          {slides.map((_, index) => (
+          {periods.map((period, index) => (
             <button
               key={index}
               className={`h-3 w-3 rounded-full transition ${
@@ -259,7 +400,7 @@ export default function Stock_Report_Webpage() {
         </div>
       </div>
 
-      {/* Note: Only show risk score for logged in users */}
+      {/* Risk Score Section (for logged in users only) */}
       {currentUser && (
         <div className="p-4 border rounded-lg">
           <h2 className="text-xl font-semibold mb-2">Risk Score</h2>
@@ -272,6 +413,7 @@ export default function Stock_Report_Webpage() {
         </div>
       )}
 
+      {/* Prompt to Log In/Sign Up */}
       {!currentUser && (
         <div className="p-4 border rounded-lg bg-blue-50">
           <h2 className="text-xl font-semibold mb-2">Access More Features</h2>
