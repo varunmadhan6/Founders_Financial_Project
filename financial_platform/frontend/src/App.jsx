@@ -1,10 +1,11 @@
-import { useState } from "react";
 import Home from "./webpages/home.jsx";
 import Navbar from "./components/Navbar.jsx"; // Updated path
 import Stock_Report_Webpage from "./webpages/Stock_Report_Webpage.jsx";
 import Login from "./webpages/Login.jsx";
 import Signup from "./webpages/Signup.jsx";
 import Profile from "./webpages/Profile.jsx";
+import MarketPulseDashboard from "./components/MarketPulse.jsx";
+
 import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import MarketPulseDashboard from "./components/MarketPulse.jsx";
