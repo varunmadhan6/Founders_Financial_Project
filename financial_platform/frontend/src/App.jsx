@@ -5,10 +5,9 @@ import Login from "./webpages/Login.jsx";
 import Signup from "./webpages/Signup.jsx";
 import Profile from "./webpages/Profile.jsx";
 import MarketPulseDashboard from "./components/MarketPulse.jsx";
-
 import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-import MarketPulseDashboard from "./components/MarketPulse.jsx";
+
 export default function App() {
   return (
     <AuthProvider>
