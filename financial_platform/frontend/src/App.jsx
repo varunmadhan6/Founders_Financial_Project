@@ -7,7 +7,7 @@ import Signup from "./webpages/Signup.jsx";
 import Profile from "./webpages/Profile.jsx";
 import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-
+import MarketPulseDashboard from "./components/MarketPulse.jsx";
 export default function App() {
   return (
     <AuthProvider>
@@ -19,7 +19,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/db" element={<StockInfo />} />
+          {/* <Route path="/db" element={<StockInfo />} /> */}
           <Route path="/market-pulse" element={<MarketPulseDashboard />} />
         </Routes>
       </>
