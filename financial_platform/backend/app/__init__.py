@@ -11,14 +11,14 @@ def create_app(config_class=Config):
     cors.init_app(app)
     jwt.init_app(app)
     
-    # Initialize database
+    # Initialize database 
     init_db()
     
     # Register blueprints
     from app.routes.auth import auth_bp
-    from app.routes.stock import stock_bp
+    from app.routes.stock_report import stock_report_bp
     
     app.register_blueprint(auth_bp)
-    app.register_blueprint(stock_bp)
+    app.register_blueprint(stock_report_bp, url_prefix='/api/stock_report')
     
     return app

@@ -5,7 +5,6 @@ from app.services.stock_service import StockService
 stock_bp = Blueprint('stock', __name__, url_prefix='/api')
 
 @stock_bp.route('/getStockInfo', methods=['GET'])
-@jwt_required(optional=True)
 def get_stock_info():
     symbol = request.args.get('symbol', '').strip().upper()
     
@@ -28,7 +27,6 @@ def get_stock_info():
         return jsonify({"error": str(e)}), 500
 
 @stock_bp.route('/stocks/add', methods=['POST'])
-@jwt_required()
 def add_stocks():
     try:
         # Get current user
