@@ -37,6 +37,29 @@ def init_db():
     )
     ''')
     
+    # Create a stock_data table for historical data
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS stocks2 (
+        stock_symbol VARCHAR(10) PRIMARY KEY,
+        company_name VARCHAR(255),
+        sector VARCHAR(100),
+        industry VARCHAR(100)
+    )
+    ''')
+
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS stock_data (
+        stock_symbol VARCHAR(10),
+        date DATE,
+        closing_price DECIMAL(10, 2),
+        high_52week DECIMAL(10, 2),
+        low_52week DECIMAL(10, 2),
+        PRIMARY KEY (stock_symbol, date),
+        FOREIGN KEY (stock_symbol) REFERENCES stocks2(stock_symbol)
+    )
+    ''')
+    
     conn.commit()
     cur.close()
     conn.close()
