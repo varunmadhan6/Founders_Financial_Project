@@ -9,7 +9,7 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # Create users table
+    # Create users table (if not exists)
     cur.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -21,23 +21,7 @@ def init_db():
     )
     ''')
     
-    # Create stocks table if it doesn't exist
-    cur.execute('''
-    CREATE TABLE IF NOT EXISTS stocks (
-        id SERIAL PRIMARY KEY,
-        symbol VARCHAR(10) UNIQUE NOT NULL,
-        name VARCHAR(100),
-        sector VARCHAR(100),
-        industry VARCHAR(100),
-        market_cap BIGINT,
-        price NUMERIC,
-        pe_ratio NUMERIC,
-        dividend_yield NUMERIC,
-        last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    )
-    ''')
-    
-    # Create a stock_data table for historical data
+    # Create stocks2 table (for stock metadata)
     cur.execute('''
     CREATE TABLE IF NOT EXISTS stocks2 (
         stock_symbol VARCHAR(10) PRIMARY KEY,
@@ -46,8 +30,8 @@ def init_db():
         industry VARCHAR(100)
     )
     ''')
-
-
+    
+    # Create stock_data table (for historical daily data)
     cur.execute('''
     CREATE TABLE IF NOT EXISTS stock_data (
         stock_symbol VARCHAR(10),
@@ -57,6 +41,19 @@ def init_db():
         low_52week DECIMAL(10, 2),
         PRIMARY KEY (stock_symbol, date),
         FOREIGN KEY (stock_symbol) REFERENCES stocks2(stock_symbol)
+    )
+    ''')
+    
+    # Create market_pulse table (aggregated market data)
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS market_pulse (
+        date DATE PRIMARY KEY,
+        new_highs INTEGER,
+        new_lows INTEGER,
+        advanced INTEGER,
+        declined INTEGER,
+        unchanged INTEGER,
+        ad_spread INTEGER
     )
     ''')
     
