@@ -17,8 +17,10 @@ def create_app(config_class=Config):
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.stock_report import stock_report_bp
-    
+    from app.routes.stock import stock_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(stock_report_bp, url_prefix='/api/stock_report')
+    app.register_blueprint(stock_bp, url_prefix='/api/stock')
     
     return app
