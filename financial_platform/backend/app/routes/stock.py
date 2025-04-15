@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from app.utils.db import get_db_connection
 
 stock_bp = Blueprint('stock', __name__)
+
 @stock_bp.route('/getStockInfo', methods=['GET'])
 def get_stock_info():
     symbol = request.args.get('symbol', '').strip().upper()
@@ -17,21 +18,7 @@ def get_stock_info():
         return jsonify(stock_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-@stock_bp.route('/stocks/add', methods=['POST'])
-def add_stocks():
-    try:
-        symbols = request.json.get("symbols", [])
-        if not symbols:
-            return jsonify({"error": "No stock symbols provided"}), 400
-        added_symbols, error = StockService.add_stocks(symbols)
-        if error:
-            return jsonify({"error": error}), 500
-        return jsonify({
-            "message": "Stocks added successfully",
-            "stocks": added_symbols
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+
 @stock_bp.route('/stocks/history/update', methods=['POST'])
 def update_historical_data():
     try:
@@ -45,7 +32,6 @@ def update_historical_data():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @stock_bp.route('/stocks/history/<symbol>', methods=['GET'])
 def get_historical_data(symbol):
