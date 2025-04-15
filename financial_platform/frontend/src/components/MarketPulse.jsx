@@ -17,106 +17,84 @@ const MarketPulseDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("1M");
+  const [displayData, setDisplayData] = useState([]);
 
+  // Fetch fresh data whenever the timeRange changes
   useEffect(() => {
-    // In a real implementation, this would fetch from your backend
     fetchMarketData();
   }, [timeRange]);
 
+  /**
+   * Hit your real Flask (or other) backend to get market pulse data.
+   */
   const fetchMarketData = async () => {
     setIsLoading(true);
     try {
-      // In production, this would be a real API call to your Flask backend
-      // const response = await fetch('/api/market-pulse?range=' + timeRange);
-      // const data = await response.json();
+      // Add the timeRange as a query parameter
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/stock/api/market-pulse?range=${timeRange}`
+      );
+      console.log("Response:", response);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
 
-      // Simulated data based on your handwritten notes
-      const simulatedData = generateSimulatedData();
-      setMarketData(simulatedData);
+      const rawData = await response.json();
+      setMarketData(rawData);
+
+      // Process the data for display based on timeRange
+      setDisplayData(processDataForTimeRange(rawData, timeRange));
     } catch (err) {
-      setError("Failed to load market data");
       console.error(err);
+      setError("Failed to load market data");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const generateSimulatedData = () => {
-    // Create simulated data that mimics what your database would return
-    const days = 30; // Simulate 30 days of data
-    const data = [];
+  /**
+   * Process data based on the selected time range
+   */
+  const processDataForTimeRange = (data, range) => {
+    if (!data || data.length === 0) return [];
 
-    let advancedSum = 0;
-    let declinedSum = 0;
-    let prevNewHighs = 80;
-    let prevNewLows = 170;
+    const now = new Date();
+    let cutoffDate = new Date();
 
-    for (let i = 0; i < days; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (days - i));
-
-      // Simulate daily values with some randomness but trending in a direction
-      const newHighs = Math.max(
-        10,
-        Math.floor(prevNewHighs + (Math.random() * 40 - 20))
-      );
-      const newLows = Math.max(
-        10,
-        Math.floor(prevNewLows + (Math.random() * 40 - 20))
-      );
-      const advanced = Math.floor(500 + Math.random() * 1500);
-      const declined = Math.floor(300 + Math.random() * 1500);
-      const unchanged = Math.floor(100 + Math.random() * 300);
-
-      // Calculate rates of change (based on your Plot #2 description)
-      const newHighRateOfChange =
-        prevNewHighs > 0 ? ((newHighs - prevNewHighs) / prevNewHighs) * 100 : 0;
-      const newLowRateOfChange =
-        prevNewLows > 0 ? ((newLows - prevNewLows) / prevNewLows) * 100 : 0;
-
-      // Calculate A-D spread (Advanced - Declined) as shown in your notes
-      const adSpread = advanced - declined;
-      advancedSum += advanced;
-      declinedSum += declined;
-      const cumulativeADLine = advancedSum - declinedSum;
-
-      // Calculate acceleration of new highs/lows (Plot #3 in your notes)
-      const acceleration =
-        i > 0
-          ? newHighs -
-            prevNewHighs -
-            (data[i - 1].newHighs -
-              (i > 1 ? data[i - 2].newHighs : prevNewHighs))
-          : 0;
-
-      data.push({
-        date: date.toISOString().split("T")[0],
-        newHighs,
-        newLows,
-        advanced,
-        declined,
-        unchanged,
-        adSpread,
-        cumulativeADLine,
-        newHighRateOfChange: newHighRateOfChange.toFixed(2),
-        newLowRateOfChange: newLowRateOfChange.toFixed(2),
-        acceleration: acceleration.toFixed(2),
-      });
-
-      // Set current values as previous for next iteration
-      prevNewHighs = newHighs;
-      prevNewLows = newLows;
+    // Set cutoff date based on time range
+    switch (range) {
+      case "1W":
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case "1M":
+        cutoffDate.setMonth(now.getMonth() - 1);
+        break;
+      case "3M":
+        cutoffDate.setMonth(now.getMonth() - 3);
+        break;
+      case "YTD":
+        cutoffDate = new Date(now.getFullYear(), 0, 1); // January 1st of current year
+        break;
+      default:
+        cutoffDate.setMonth(now.getMonth() - 1); // Default to 1M
     }
 
-    return data;
+    // Filter data based on cutoff date
+    return data.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate >= cutoffDate;
+    });
   };
 
+  /**
+   * Summarize the most recent day (compared to prior day).
+   */
   const calculateSummaryMetrics = () => {
-    if (!marketData.length) return null;
+    if (!displayData.length) return null;
 
-    const latestDay = marketData[marketData.length - 1];
+    const latestDay = displayData[displayData.length - 1];
     const previousDay =
-      marketData.length > 1 ? marketData[marketData.length - 2] : null;
+      displayData.length > 1 ? displayData[displayData.length - 2] : null;
 
     return {
       newHighs: latestDay.newHighs,
@@ -136,6 +114,12 @@ const MarketPulseDashboard = () => {
   };
 
   const summaryMetrics = calculateSummaryMetrics();
+
+  // Display the number of data points being shown
+  const getDataPointsLabel = () => {
+    if (!displayData.length) return "";
+    return `Showing ${displayData.length} days of data`;
+  };
 
   return (
     <div className="flex flex-col space-y-4 p-4 max-w-6xl mx-auto">
@@ -162,6 +146,13 @@ const MarketPulseDashboard = () => {
         </div>
       </div>
 
+      {/* Display data points count */}
+      {!isLoading && !error && displayData.length > 0 && (
+        <div className="text-sm text-gray-500 text-right">
+          {getDataPointsLabel()}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <p>Loading market data...</p>
@@ -186,15 +177,17 @@ const MarketPulseDashboard = () => {
         </div>
       ) : (
         <>
-          {/* Summary Cards */}
+          {/* --- SUMMARY CARDS --- */}
           {summaryMetrics && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* CARD 1: New Highs/Lows */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="pb-2 border-b">
                   <h3 className="text-base font-medium">New Highs/Lows</h3>
                 </div>
                 <div className="pt-4">
                   <div className="grid grid-cols-2 gap-4">
+                    {/* New Highs */}
                     <div className="flex flex-col">
                       <div className="text-2xl font-bold">
                         {summaryMetrics.newHighs}
@@ -240,6 +233,8 @@ const MarketPulseDashboard = () => {
                         <span className="ml-1 text-gray-500">New Highs</span>
                       </div>
                     </div>
+
+                    {/* New Lows */}
                     <div className="flex flex-col">
                       <div className="text-2xl font-bold">
                         {summaryMetrics.newLows}
@@ -289,6 +284,7 @@ const MarketPulseDashboard = () => {
                 </div>
               </div>
 
+              {/* CARD 2: Advances/Declines */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="pb-2 border-b">
                   <h3 className="text-base font-medium">Advances/Declines</h3>
@@ -315,6 +311,7 @@ const MarketPulseDashboard = () => {
                         <span className="text-gray-500">Advanced</span>
                       </div>
                     </div>
+
                     <div className="flex flex-col">
                       <div className="text-2xl font-bold">
                         {summaryMetrics.declined}
@@ -339,6 +336,7 @@ const MarketPulseDashboard = () => {
                 </div>
               </div>
 
+              {/* CARD 3: A-D Spread */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="pb-2 border-b">
                   <h3 className="text-base font-medium">A-D Spread</h3>
@@ -396,8 +394,9 @@ const MarketPulseDashboard = () => {
             </div>
           )}
 
-          {/* Charts */}
+          {/* --- CHARTS --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* CHART 1: New Highs vs New Lows */}
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="border-b pb-2">
                 <h3 className="font-medium">New Highs vs New Lows</h3>
@@ -405,7 +404,7 @@ const MarketPulseDashboard = () => {
               <div className="h-64 pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={marketData}
+                    data={displayData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -430,6 +429,7 @@ const MarketPulseDashboard = () => {
               </div>
             </div>
 
+            {/* CHART 2: Daily Rate of Change in New Highs */}
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="border-b pb-2">
                 <h3 className="font-medium">
@@ -439,17 +439,12 @@ const MarketPulseDashboard = () => {
               <div className="h-64 pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={marketData}
+                    data={displayData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="10 10" />
                     <XAxis dataKey="date" />
-                    <YAxis
-                      domain={[
-                        (dataMin) => Math.floor(dataMin * 1.1),
-                        (dataMax) => Math.ceil(dataMax * 1.1),
-                      ]}
-                    />
+                    <YAxis />
                     <Tooltip />
                     <Legend />
                     <Bar
@@ -462,6 +457,7 @@ const MarketPulseDashboard = () => {
               </div>
             </div>
 
+            {/* CHART 3: Advance-Decline Line */}
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="border-b pb-2">
                 <h3 className="font-medium">Advance-Decline Line</h3>
@@ -469,7 +465,7 @@ const MarketPulseDashboard = () => {
               <div className="h-64 pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={marketData}
+                    data={displayData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -488,24 +484,20 @@ const MarketPulseDashboard = () => {
               </div>
             </div>
 
+            {/* CHART 4: Acceleration of New Highs */}
             <div className="bg-white p-4 rounded-lg shadow">
               <div className="border-b pb-2">
-                <h3 className="font-medium">Acceleration of New Highs/Lows</h3>
+                <h3 className="font-medium">Acceleration of New Highs</h3>
               </div>
               <div className="h-64 pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={marketData}
+                    data={displayData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis
-                      domain={[
-                        (dataMin) => Math.floor(dataMin * 1.1),
-                        (dataMax) => Math.ceil(dataMax * 1.1),
-                      ]}
-                    />
+                    <YAxis />
                     <Tooltip />
                     <Legend />
                     <Bar
@@ -519,10 +511,19 @@ const MarketPulseDashboard = () => {
             </div>
           </div>
 
-          {/* Data Table */}
+          {/* --- DATA TABLE (dynamically show appropriate number of records) --- */}
           <div className="bg-white p-4 rounded-lg shadow">
-            <div className="border-b pb-2">
+            <div className="border-b pb-2 flex justify-between items-center">
               <h3 className="font-medium">Market Breadth Data</h3>
+              <span className="text-sm text-gray-500">
+                {timeRange === "1W"
+                  ? "Last 7 days"
+                  : timeRange === "1M"
+                  ? "Last 30 days"
+                  : timeRange === "3M"
+                  ? "Last 90 days"
+                  : "Year to date"}
+              </span>
             </div>
             <div className="pt-4">
               <div className="overflow-x-auto">
@@ -553,8 +554,9 @@ const MarketPulseDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {marketData
-                      .slice(-10)
+                    {displayData
+                      // Show data newest first, limit to max 15 rows for better UX
+                      .slice(-Math.min(displayData.length, 15))
                       .reverse()
                       .map((day, index) => (
                         <tr
