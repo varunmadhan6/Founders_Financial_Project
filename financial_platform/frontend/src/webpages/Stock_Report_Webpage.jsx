@@ -22,20 +22,20 @@ export default function Stock_Report_Webpage() {
   const [chartData, setChartData] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const periods = ["day", "week", "month", "year"];
+  const periods = ["week", "month", "year", "5 years"];
   const periodTitles = {
-    day: "Past Day",
     week: "Past Week",
     month: "Past Month",
     year: "Past Year",
+    five_years: "Past 5 Years"
   };
 
   // Colors for each time period
   const periodColors = [
-    "#d12e78", // Day
-    "#8884d8", // Week
-    "#82ca9d", // Month
-    "#ffc658", // Year
+    "#d12e78", // Week
+    "#8884d8", // Month
+    "#82ca9d", // Year
+    "#ffc658", // Five_Years
   ];
 
   // Auto-change slides every 5 seconds
@@ -80,8 +80,6 @@ export default function Stock_Report_Webpage() {
           setStockData({
             name: data.stockInfo.name || symbol,
             currentPrice: data.stockInfo.currentPrice,
-            marketCap: data.stockInfo.marketCap,
-            peRatio: data.stockInfo.peRatio,
             week52High: data.stockInfo.week52High,
             week52Low: data.stockInfo.week52Low,
             message: recommendation,
@@ -131,20 +129,6 @@ export default function Stock_Report_Webpage() {
     }
   }
 
-  // Format market cap for display
-  function formatMarketCap(marketCap) {
-    if (!marketCap) return "N/A";
-
-    if (marketCap >= 1e12) {
-      return `$${(marketCap / 1e12).toFixed(2)}T`;
-    } else if (marketCap >= 1e9) {
-      return `$${(marketCap / 1e9).toFixed(2)}B`;
-    } else if (marketCap >= 1e6) {
-      return `$${(marketCap / 1e6).toFixed(2)}M`;
-    } else {
-      return `$${marketCap.toLocaleString()}`;
-    }
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
@@ -185,18 +169,10 @@ export default function Stock_Report_Webpage() {
 
           <div className="mb-6 p-4 border rounded-lg">
             <h2 className="text-xl font-semibold mb-2">Stock Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <p>
                 <strong>Current Price:</strong> $
                 {stockData.currentPrice?.toFixed(2) || "N/A"}
-              </p>
-              <p>
-                <strong>Market Cap:</strong>{" "}
-                {formatMarketCap(stockData.marketCap)}
-              </p>
-              <p>
-                <strong>P/E Ratio:</strong>{" "}
-                {stockData.peRatio?.toFixed(2) || "N/A"}
               </p>
               <p>
                 <strong>52-Week High:</strong> $

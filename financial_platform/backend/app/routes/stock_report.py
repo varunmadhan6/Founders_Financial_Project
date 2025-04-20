@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-import yfinance as yf
+from app.utils.db import get_db_connection
 from functools import lru_cache
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Define a Blueprint for stock report routes
 stock_report_bp = Blueprint('stock_report', __name__)
@@ -11,71 +11,70 @@ stock_report_bp = Blueprint('stock_report', __name__)
 @lru_cache(maxsize=100)
 def get_cached_stock_history(symbol, timestamp, period):
     try:
-        stock = yf.Ticker(symbol)
-
-        valid_periods = {
-            "day": "1d",
-            "week": "7d",
-            "month": "1mo",
-            "year": "1y"
-        }
-        
-        valid_intervals = {
-            "day": "15m",    # 15-minute intervals for day
-            "week": "1h",    # 1-hour intervals for week
-            "month": "1d",   # 1-day intervals for month
-            "year": "1wk"    # 1-week intervals for year
+        # Map periods to date ranges
+        period_mapping = {
+            "week": 7,
+            "month": 30,
+            "year": 365,
+            "5 years": 1825
         }
 
-        if period not in valid_periods:
-            raise ValueError("Invalid period. Use 'day', 'week', 'month', or 'year'.")
+        if period not in period_mapping:
+            raise ValueError("Invalid period. Use 'week', 'month', 'year', or '5 years'.")
 
-        # Get historical data with appropriate interval
-        hist = stock.history(period=valid_periods[period], interval=valid_intervals[period])
-        
-        if hist.empty:
+        # Calculate the start date based on the period
+        days = period_mapping[period]
+        start_date = (datetime.now() - timedelta(days=days)).date()
+
+        # Query the database for historical data
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT date, closing_price
+            FROM stock_data
+            WHERE stock_symbol = %s AND date >= %s
+            ORDER BY date ASC
+        """, (symbol, start_date))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        if not rows:
             raise ValueError("No historical data available")
 
-        # Format time based on period
+        # Format the results
         result = []
-        for index, row in hist.iterrows():
-            # Format time display based on period
-            if period == "day":
-                time_label = index.strftime("%H:%M")
-            elif period == "week":
-                time_label = index.strftime("%a %H:%M")
-            elif period == "month":
-                time_label = index.strftime("%b %d")
-            else:  # year
-                time_label = index.strftime("%b %Y")
-                
+        for row in rows:
+            date, closing_price = row
+            if period == "week" or period == "month":
+                time_label = date.strftime("%b %d")
+            else:  # "year" or "5 years"
+                time_label = date.strftime("%b %Y")
+
             result.append({
                 "time": time_label,
-                "price": round(float(row["Close"]), 2)
+                "price": round(float(closing_price), 2)
             })
-        
-        # Get additional stock info
-        try:
-            info = stock.info
-            stock_info = {
-                "name": info.get("shortName", symbol),
-                "currentPrice": result[-1]["price"] if result else None,
-                "marketCap": info.get("marketCap"),
-                "peRatio": info.get("forwardPE"),
-                "week52High": info.get("fiftyTwoWeekHigh"),
-                "week52Low": info.get("fiftyTwoWeekLow"),
-            }
-        except:
-            # If additional info can't be fetched, use basic info
-            stock_info = {
-                "name": symbol,
-                "currentPrice": result[-1]["price"] if result else None,
-                "marketCap": None,
-                "peRatio": None,
-                "week52High": None,
-                "week52Low": None,
-            }
-        
+
+        # Fetch stock metadata from the database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT company_name, sector, industry
+            FROM stocks2
+            WHERE stock_symbol = %s
+        """, (symbol,))
+        metadata = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        stock_info = {
+            "name": metadata[0] if metadata else symbol,
+            "currentPrice": result[-1]["price"] if result else None,
+            "week52High": None,  # Add logic to fetch 52-week high if needed
+            "week52Low": None   # Add logic to fetch 52-week low if needed
+        }
+
         return {"data": result, "info": stock_info}
 
     except Exception as e:
@@ -85,7 +84,7 @@ def get_cached_stock_history(symbol, timestamp, period):
 @stock_report_bp.route('/getStockHistory', methods=['GET'])
 def get_stock_history():
     symbol = request.args.get('symbol', '').strip().upper()
-    period = request.args.get('period', 'day')  # Default to daily
+    period = request.args.get('period', 'week')  # Default to daily
 
     if not symbol:
         return jsonify({"error": "Stock symbol is required"}), 400
