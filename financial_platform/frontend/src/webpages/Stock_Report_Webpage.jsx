@@ -7,7 +7,128 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
+
+// Improved directional system logic with better naming and comments
+function calculateDMI(data, period = 14) {
+  try {
+    // Check if data is valid
+    if (!data || data.length < period + 1) {
+      console.log("Not enough data points for DMI calculation");
+      return [];
+    }
+    
+    // Calculate directional movement
+    const plusDM   = [0];
+    const minusDM  = [0];
+    const trueRange = [0];
+
+    for (let i = 1; i < data.length; i++) {
+      // diff in closes
+      const diff = data[i].close - data[i-1].close;
+      // +DM = any positive move, –DM = any negative move
+      plusDM.push (Math.max(diff,  0));
+      minusDM.push(Math.max(-diff, 0));
+      // TR = absolute move
+      trueRange.push(Math.abs(diff));
+    }
+    
+    // Calculate smoothed values using Wilder's smoothing
+    const smoothedPlusDM = wilderSmooth(plusDM.slice(1), period);
+    const smoothedMinusDM = wilderSmooth(minusDM.slice(1), period);
+    const smoothedTR = wilderSmooth(trueRange, period);
+    
+    // Calculate directional indices
+    const diPlus = [];
+    const diMinus = [];
+    const dx = [];
+    
+    for (let i = 0; i < smoothedTR.length; i++) {
+      // DI+/- = (Smoothed +/- DM / Smoothed TR) * 100
+      if (smoothedTR[i] > 0) {
+        diPlus.push((smoothedPlusDM[i] / smoothedTR[i]) * 100);
+        diMinus.push((smoothedMinusDM[i] / smoothedTR[i]) * 100);
+      } else {
+        diPlus.push(0);
+        diMinus.push(0);
+      }
+      
+      // DX = (|DI+ - DI-| / (DI+ + DI-)) * 100
+      const sum = diPlus[i] + diMinus[i];
+      if (sum > 0) {
+        dx.push((Math.abs(diPlus[i] - diMinus[i]) / sum) * 100);
+      } else {
+        dx.push(0);
+      }
+    }
+    
+    // Calculate ADX using Wilder's smoothing of DX
+    const adx = calculateADX(dx, period);
+    
+    // Build the result data structure
+    const result = [];
+
+    // diPlus/diMinus/dx all start at data index 1 → diIdx = i-1
+    // adx starts at data index = period → adxIdx = i - period
+    for (let i = period; i < data.length; i++) {
+      const diIdx  = i - 1;
+      const adxIdx = i - period;
+      result.push({
+        time:    data[i].time,
+        DIPlus:  diPlus[diIdx],
+        DIMinus: diMinus[diIdx],
+        DX:      dx[diIdx],
+        ADX:     adx[adxIdx]
+      });
+    }
+
+    return result;
+  } catch (err) {
+    console.error("Error calculating DMI:", err);
+    return [];
+  }
+}
+
+// Calculate Average Directional Index (ADX)
+function calculateADX(dx, period) {
+  const adx = [];
+  
+  // Initial ADX is the simple average of the first period DX values
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    sum += dx[i];
+  }
+  adx.push(sum / period);
+  
+  // For remaining periods, use Wilder's smoothing
+  for (let i = 1; i < dx.length - period + 1; i++) {
+    // ADX = ((Prior ADX * (period-1)) + Current DX) / period
+    adx.push(((adx[i-1] * (period-1)) + dx[i+period-1]) / period);
+  }
+  
+  return adx;
+}
+
+// Wilder's Smoothing Method
+function wilderSmooth(data, period) {
+  const smoothed = [];
+  
+  // First value is simple average
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    sum += data[i];
+  }
+  smoothed.push(sum / period);
+  
+  // Remaining values use Wilder's formula:
+  // Current = ((Previous * (period-1)) + Current Data) / period
+  for (let i = period; i < data.length; i++) {
+    smoothed.push(((smoothed[smoothed.length-1] * (period-1)) + data[i]) / period);
+  }
+  
+  return smoothed;
+}
 
 export default function Stock_Report_Webpage() {
   const currentUser = null;
@@ -21,45 +142,45 @@ export default function Stock_Report_Webpage() {
   // States for chart data
   const [chartData, setChartData] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Directional movement indicator states
+  const [indicatorData, setIndicatorData] = useState([]);
+  const [indLoading, setIndLoading] = useState(false);
 
-  const periods = ["day", "week", "month", "year"];
+  const periods = ["week", "month", "year", "5 years"];
   const periodTitles = {
-    day: "Past Day",
     week: "Past Week",
     month: "Past Month",
     year: "Past Year",
+    "5 years": "Past 5 Years"
   };
 
-  // Colors for each time period
+  // Colors for each time period and indicator lines
   const periodColors = [
-    "#d12e78", // Day
-    "#8884d8", // Week
-    "#82ca9d", // Month
-    "#ffc658", // Year
+    "#d12e78", // Week
+    "#8884d8", // Month
+    "#82ca9d", // Year
+    "#ffc658", // Five_Years
   ];
+  
+  const indicatorColors = {
+    DIPlus: "#0088FE",  // Blue for +DI
+    DIMinus: "#FF8042", // Orange for -DI
+    ADX: "#00C49F",     // Green for ADX
+    DX: "#FFBB28"       // Yellow for DX
+  };
 
-  // Auto-change slides every 5 seconds
-  // useEffect(() => {
-  // if (stockSymbol) {
-  //   fetchStockData(stockSymbol, periods[currentSlide]);
-  // }
-
-  // // Auto-switch slides every 5 seconds
-  // const timer = setInterval(() => {
-  //   setCurrentSlide((prevSlide) => {
-  //     const nextSlide = (prevSlide + 1) % periods.length;
-  //     fetchStockData(stockSymbol, periods[nextSlide]); // Fetch data based on the next period
-  //     return nextSlide;
-  //   });
-  // }, 5000);
-
-  // return () => clearInterval(timer); // Cleanup timer when component unmounts
-  // }, [stockSymbol, currentSlide]);
+  // Check if current period is too short for DMI calculations
+  const isPeriodTooShort = () => {
+    return currentSlide === 0 || currentSlide === 1; // week or month
+  };
 
   // Fetch stock data from API
   async function fetchStockData(symbol, period) {
     setLoading(true);
     setError("");
+    setIndicatorData([]);
+    setIndLoading(true);
 
     try {
       const response = await fetch(
@@ -70,8 +191,35 @@ export default function Stock_Report_Webpage() {
       if (data.error) {
         setError(data.error);
         setChartData([]);
+        setIndicatorData([]);
       } else {
         setChartData(data.data);
+
+        // Process indicator data only if period is long enough
+        if (!isPeriodTooShort() && data.data && data.data.length > 0) {
+          // always map just the close-price
+          const rawData = data.data.map(d => ({
+            time: d.time,
+            close: d.price
+          }));
+          const smoothingPeriod = Math.min(
+            14,
+            Math.floor((rawData.length + 1) / 2)
+          );
+
+          if (rawData.length >= smoothingPeriod + 1) {
+            const dmiData = calculateDMI(rawData, smoothingPeriod);
+            setIndicatorData(dmiData);
+          } else {
+            console.log(
+              `Need at least ${smoothingPeriod + 1} rows for a ${smoothingPeriod}-period DMI, have ${rawData.length}`
+            );
+            setIndicatorData([]);
+          }
+        } else {
+          // Clear indicator data for short periods
+          setIndicatorData([]);
+        }
 
         // Use real stock info from the API
         if (data.stockInfo) {
@@ -80,8 +228,6 @@ export default function Stock_Report_Webpage() {
           setStockData({
             name: data.stockInfo.name || symbol,
             currentPrice: data.stockInfo.currentPrice,
-            marketCap: data.stockInfo.marketCap,
-            peRatio: data.stockInfo.peRatio,
             week52High: data.stockInfo.week52High,
             week52Low: data.stockInfo.week52Low,
             message: recommendation,
@@ -93,6 +239,7 @@ export default function Stock_Report_Webpage() {
     }
 
     setLoading(false);
+    setIndLoading(false);
   }
 
   // Generate a recommendation based on price position between 52-week high and low
@@ -118,7 +265,7 @@ export default function Stock_Report_Webpage() {
 
   function handleSlideChange(index) {
     setCurrentSlide(index);
-    fetchStockData(stockSymbol, periods[index]); // Fetch data based on the selected period
+    fetchStockData(stockSymbol, periods[index]);
   }
 
   // Handle form submission (fetch stock data when user searches)
@@ -127,24 +274,54 @@ export default function Stock_Report_Webpage() {
     if (stockSymbol.trim()) {
       // Reset stockData when searching for a new symbol
       setStockData(null);
-      fetchStockData(stockSymbol, periods[currentSlide]); // Fetch new data for the selected period
+      fetchStockData(stockSymbol, periods[currentSlide]);
     }
   }
 
-  // Format market cap for display
-  function formatMarketCap(marketCap) {
-    if (!marketCap) return "N/A";
-
-    if (marketCap >= 1e12) {
-      return `$${(marketCap / 1e12).toFixed(2)}T`;
-    } else if (marketCap >= 1e9) {
-      return `$${(marketCap / 1e9).toFixed(2)}B`;
-    } else if (marketCap >= 1e6) {
-      return `$${(marketCap / 1e6).toFixed(2)}M`;
+  // Generate DMI trend signals based on indicator values
+  function generateDMISignal(indicatorData) {
+    if (!indicatorData || indicatorData.length === 0) return null;
+    
+    // Get the most recent indicator values
+    const latest = indicatorData[indicatorData.length - 1];
+    
+    if (latest.DIPlus > latest.DIMinus && latest.ADX > 25) {
+      return {
+        trend: "Strong Uptrend",
+        signal: "Bullish",
+        description: "The +DI is above -DI and ADX is above 25, indicating a strong uptrend.",
+        color: "text-green-600"
+      };
+    } else if (latest.DIMinus > latest.DIPlus && latest.ADX > 25) {
+      return {
+        trend: "Strong Downtrend",
+        signal: "Bearish",
+        description: "The -DI is above +DI and ADX is above 25, indicating a strong downtrend.",
+        color: "text-red-600"
+      };
+    } else if (latest.ADX < 20) {
+      return {
+        trend: "No Clear Trend",
+        signal: "Neutral",
+        description: "ADX is below 20, indicating a weak or non-existent trend.",
+        color: "text-yellow-600"
+      };
     } else {
-      return `$${marketCap.toLocaleString()}`;
+      return {
+        trend: "Moderate Trend",
+        signal: latest.DIPlus > latest.DIMinus ? "Mildly Bullish" : "Mildly Bearish",
+        description: `ADX is between 20-25, indicating a developing trend. ${latest.DIPlus > latest.DIMinus ? "+DI above -DI suggests bullish momentum." : "-DI above +DI suggests bearish momentum."}`,
+        color: latest.DIPlus > latest.DIMinus ? "text-green-500" : "text-red-500"
+      };
     }
   }
+
+  // Load initial data when component mounts
+  useEffect(() => {
+    if (stockSymbol) {
+      fetchStockData(stockSymbol, periods[currentSlide]);
+    }
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
@@ -185,18 +362,10 @@ export default function Stock_Report_Webpage() {
 
           <div className="mb-6 p-4 border rounded-lg">
             <h2 className="text-xl font-semibold mb-2">Stock Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <p>
                 <strong>Current Price:</strong> $
                 {stockData.currentPrice?.toFixed(2) || "N/A"}
-              </p>
-              <p>
-                <strong>Market Cap:</strong>{" "}
-                {formatMarketCap(stockData.marketCap)}
-              </p>
-              <p>
-                <strong>P/E Ratio:</strong>{" "}
-                {stockData.peRatio?.toFixed(2) || "N/A"}
               </p>
               <p>
                 <strong>52-Week High:</strong> $
@@ -298,6 +467,104 @@ export default function Stock_Report_Webpage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* DMI Indicator Charts */}
+      <div className="mb-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-center">
+            Directional Movement Indicators
+          </h2>
+        </div>
+        
+        {/* Display "Range too short" message for week and month periods */}
+        {isPeriodTooShort() ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <p className="text-center text-yellow-600 font-medium mb-2">
+              Range too short, pick year or 5 year range
+            </p>
+            <p className="text-center text-gray-500 text-sm">
+              DMI calculations require longer time periods for meaningful analysis
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* DMI Signal Summary */}
+            {indicatorData.length > 0 && (
+              <div className="mb-6 p-3 border rounded-lg bg-gray-100">
+                {(() => {
+                  const signal = generateDMISignal(indicatorData);
+                  return signal ? (
+                    <div className="text-center">
+                      <h3 className="font-bold mb-1">DMI Signal</h3>
+                      <p className={`text-lg font-semibold ${signal.color}`}>{signal.trend}: {signal.signal}</p>
+                      <p className="text-sm mt-1">{signal.description}</p>
+                    </div>
+                  ) : null;
+                })()}
+              </div>      
+            )}
+
+            {/* Combined ADX & DI Chart */}
+            <div className="mb-6">
+              <h3 className="text-center font-medium mb-2">ADX & Directional Indicators</h3>
+              {indLoading ? (
+                <p className="text-center text-gray-500">Loading indicators...</p>
+              ) : indicatorData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={indicatorData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                    <XAxis dataKey="time" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip formatter={(value) => value?.toFixed(2)} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="DIPlus"
+                      name="+DI"
+                      stroke={indicatorColors.DIPlus}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="DIMinus"
+                      name="-DI"
+                      stroke={indicatorColors.DIMinus}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="ADX"
+                      name="ADX"
+                      stroke={indicatorColors.ADX}
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500">
+                  No indicator data available. Try a different time period or stock.
+                </p>
+              )}
+            </div>
+            
+            {/* DMI Interpretation Guide */}
+            <div className="mt-4 p-3 border-t border-gray-200 pt-4">
+              <h3 className="font-medium mb-2">How to Interpret DMI</h3>
+              <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
+                <li><span className="font-medium">ADX &gt; 25:</span> Strong trend present (either bullish or bearish)</li>
+                <li><span className="font-medium">ADX &lt; 20:</span> Weak or no trend</li>
+                <li><span className="font-medium">+DI above -DI:</span> Bullish signal</li>
+                <li><span className="font-medium">-DI above +DI:</span> Bearish signal</li>
+                <li><span className="font-medium">+DI/-DI crossover:</span> Potential trend reversal</li>
+              </ul>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Risk Score Section (for logged in users only) */}
