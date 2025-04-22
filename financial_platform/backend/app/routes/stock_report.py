@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify 
 from app.utils.db import get_db_connection
 from functools import lru_cache
 import time
@@ -30,33 +30,45 @@ def get_cached_stock_history(symbol, timestamp, period):
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
-            SELECT date, closing_price
+            SELECT date, closing_price, high_52week AS high, low_52week AS low
             FROM stock_data
             WHERE stock_symbol = %s AND date >= %s
             ORDER BY date ASC
         """, (symbol, start_date))
         rows = cur.fetchall()
+
+        # Also compute the 52-week high/low
+        one_year_ago = (datetime.now() - timedelta(days=365)).date()
+        cur.execute("""
+            SELECT
+              MAX(closing_price) AS high,
+              MIN(closing_price) AS low
+            FROM stock_data
+            WHERE stock_symbol = %s AND date >= %s
+        """, (symbol, one_year_ago))
+        high_low = cur.fetchone()
+
         cur.close()
         conn.close()
 
         if not rows:
             raise ValueError("No historical data available")
 
-        # Format the results
+        # Format the time‑series data
         result = []
-        for row in rows:
-            date, closing_price = row
-            if period == "week" or period == "month":
+        for date, closing_price, high, low in rows:
+            if period in ("week", "month"):
                 time_label = date.strftime("%b %d")
             else:  # "year" or "5 years"
                 time_label = date.strftime("%b %Y")
-
             result.append({
-                "time": time_label,
-                "price": round(float(closing_price), 2)
+                "time": time_label, 
+                "price": round(float(closing_price), 2),
+                "high": round(float(high), 2),
+                "low": round(float(low), 2)
             })
 
-        # Fetch stock metadata from the database
+        # Fetch stock metadata
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
@@ -68,11 +80,15 @@ def get_cached_stock_history(symbol, timestamp, period):
         cur.close()
         conn.close()
 
+        # Safely unpack the 52-week high/low
+        week52High = round(float(high_low[0]), 2) if high_low and high_low[0] is not None else None
+        week52Low  = round(float(high_low[1]), 2) if high_low and high_low[1] is not None else None
+
         stock_info = {
             "name": metadata[0] if metadata else symbol,
-            "currentPrice": result[-1]["price"] if result else None,
-            "week52High": None,  # Add logic to fetch 52-week high if needed
-            "week52Low": None   # Add logic to fetch 52-week low if needed
+            "currentPrice": result[-1]["price"],
+            "week52High": week52High,
+            "week52Low": week52Low
         }
 
         return {"data": result, "info": stock_info}
@@ -80,11 +96,10 @@ def get_cached_stock_history(symbol, timestamp, period):
     except Exception as e:
         return {"error": f"Error fetching data for {symbol}: {str(e)}"}
 
-
 @stock_report_bp.route('/getStockHistory', methods=['GET'])
 def get_stock_history():
     symbol = request.args.get('symbol', '').strip().upper()
-    period = request.args.get('period', 'week')  # Default to daily
+    period = request.args.get('period', 'week')
 
     if not symbol:
         return jsonify({"error": "Stock symbol is required"}), 400
@@ -93,16 +108,13 @@ def get_stock_history():
         # Cache results using hourly timestamp
         timestamp = int(time.time() / 3600)
         result = get_cached_stock_history(symbol, timestamp, period)
-        
         if "error" in result:
             return jsonify({"error": result["error"]}), 400
-            
         return jsonify({
-            "symbol": symbol, 
-            "period": period, 
+            "symbol": symbol,
+            "period": period,
             "data": result["data"],
             "stockInfo": result["info"]
         })
-        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
