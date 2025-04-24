@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import {
   LineChart,
   Line,
@@ -131,7 +132,9 @@ function wilderSmooth(data, period) {
 }
 
 export default function Stock_Report_Webpage() {
-  const currentUser = null;
+  const {currentUser}  = useAuth();
+
+  useEffect(() => {}, [currentUser]);
 
   // State for the stock symbol and data
   const [stockSymbol, setStockSymbol] = useState("AAPL"); // Default stock symbol
@@ -437,8 +440,8 @@ export default function Stock_Report_Webpage() {
                   dataKey="price"
                   stroke={periodColors[currentSlide]} // Use the color based on the slide
                   strokeWidth={3}
-                  dot={{ fill: periodColors[currentSlide], r: 4 }}
-                  activeDot={{ r: 6 }}
+                  dot={false}
+                  activeDot={{ r: 6, fill: periodColors[currentSlide] } }
                   isAnimationActive={true}
                   animationDuration={500}
                 />
@@ -470,7 +473,8 @@ export default function Stock_Report_Webpage() {
       </div>
 
       {/* DMI Indicator Charts */}
-      <div className="mb-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
+      {currentUser &&
+      (<div className="mb-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-center">
             Directional Movement Indicators
@@ -565,7 +569,7 @@ export default function Stock_Report_Webpage() {
             </div>
           </>
         )}
-      </div>
+      </div>)}
 
       {/* Risk Score Section (for logged in users only) */}
       {currentUser && (
