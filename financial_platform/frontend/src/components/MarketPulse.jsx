@@ -13,16 +13,32 @@ import {
 } from "recharts";
 
 const MarketPulseDashboard = () => {
+  // Add index state
+  const [activeIndex, setActiveIndex] = useState("SP500");
   const [marketData, setMarketData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("1M");
   const [displayData, setDisplayData] = useState([]);
 
-  // Fetch fresh data whenever the timeRange changes
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // Index options
+  const indices = [
+    { id: "SP500", name: "S&P 500" },
+    { id: "NASDAQ", name: "NASDAQ" },
+    { id: "NYSE", name: "NYSE" },
+    { id: "DOW", name: "Dow Jones" },
+  ];
+
+  // Fetch fresh data whenever the timeRange or activeIndex changes
   useEffect(() => {
     fetchMarketData();
-  }, [timeRange]);
+    // Reset to first page when timeRange or index changes
+    setCurrentPage(1);
+  }, [timeRange, activeIndex]);
 
   /**
    * Hit your real Flask (or other) backend to get market pulse data.
@@ -30,9 +46,9 @@ const MarketPulseDashboard = () => {
   const fetchMarketData = async () => {
     setIsLoading(true);
     try {
-      // Add the timeRange as a query parameter
+      // Add the timeRange and index as query parameters
       const response = await fetch(
-        `http://127.0.0.1:5000/api/stock/api/market-pulse?range=${timeRange}`
+        `http://127.0.0.1:5000/api/stock/api/market-pulse?range=${timeRange}&index=${activeIndex}`
       );
       console.log("Response:", response);
       if (!response.ok) {
@@ -121,41 +137,81 @@ const MarketPulseDashboard = () => {
     return `Showing ${displayData.length} days of data`;
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(displayData.length / rowsPerPage);
+  const paginatedData = displayData
+    .slice()
+    .reverse()
+    .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  // Get the active index name for display
+  const getActiveIndexName = () => {
+    const index = indices.find((idx) => idx.id === activeIndex);
+    return index ? index.name : "Market";
+  };
+
   return (
     <div className="flex flex-col space-y-4 p-4 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
         <h1 className="text-2xl font-bold">Market Pulse Dashboard</h1>
-        <div className="flex space-x-2">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
-            {["1W", "1M", "3M", "YTD"].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-4 py-2 text-sm font-medium border ${
-                  timeRange === range
-                    ? "bg-blue-500 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                } ${range === "1W" ? "rounded-l-lg" : ""} ${
-                  range === "YTD" ? "rounded-r-lg" : ""
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
+
+        {/* Index Tabs */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          {indices.map((index) => (
+            <button
+              key={index.id}
+              onClick={() => setActiveIndex(index.id)}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition ${
+                activeIndex === index.id
+                  ? "bg-white text-blue-600 shadow"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {index.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Time range selector */}
+      <div className="flex justify-end">
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          {["1W", "1M", "3M", "YTD"].map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-4 py-2 text-sm font-medium border ${
+                timeRange === range
+                  ? "bg-blue-500 text-white border-blue-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+              } ${range === "1W" ? "rounded-l-lg" : ""} ${
+                range === "YTD" ? "rounded-r-lg" : ""
+              }`}
+            >
+              {range}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Display data points count */}
       {!isLoading && !error && displayData.length > 0 && (
         <div className="text-sm text-gray-500 text-right">
-          {getDataPointsLabel()}
+          {getDataPointsLabel()} for {getActiveIndexName()}
         </div>
       )}
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <p>Loading market data...</p>
+          <p>Loading market data for {getActiveIndexName()}...</p>
         </div>
       ) : error ? (
         <div className="flex justify-center items-center h-64 text-red-500">
@@ -511,10 +567,12 @@ const MarketPulseDashboard = () => {
             </div>
           </div>
 
-          {/* --- DATA TABLE (dynamically show appropriate number of records) --- */}
+          {/* --- DATA TABLE WITH PAGINATION (10 rows per page) --- */}
           <div className="bg-white p-4 rounded-lg shadow">
             <div className="border-b pb-2 flex justify-between items-center">
-              <h3 className="font-medium">Market Breadth Data</h3>
+              <h3 className="font-medium">
+                {getActiveIndexName()} Market Breadth Data
+              </h3>
               <span className="text-sm text-gray-500">
                 {timeRange === "1W"
                   ? "Last 7 days"
@@ -554,42 +612,100 @@ const MarketPulseDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {displayData
-                      // Show data newest first, limit to max 15 rows for better UX
-                      .slice(-Math.min(displayData.length, 15))
-                      .reverse()
-                      .map((day, index) => (
-                        <tr
-                          key={index}
-                          className={
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          }
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.date}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.newHighs}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.newLows}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.advanced}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.declined}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.unchanged}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {day.adSpread}
-                          </td>
-                        </tr>
-                      ))}
+                    {paginatedData.map((day, index) => (
+                      <tr
+                        key={index}
+                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.date}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.newHighs}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.newLows}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.advanced}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.declined}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.unchanged}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {day.adSpread}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between mt-4 border-t pt-4">
+                <div className="text-sm text-gray-500">
+                  Showing{" "}
+                  {Math.min(
+                    (currentPage - 1) * rowsPerPage + 1,
+                    displayData.length
+                  )}{" "}
+                  to {Math.min(currentPage * rowsPerPage, displayData.length)}{" "}
+                  of {displayData.length} entries
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded border ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-blue-500 hover:bg-blue-50"
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  <div className="flex items-center bg-white border rounded px-3 py-1">
+                    <span className="text-sm">
+                      {currentPage} of {totalPages}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded border ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-blue-500 hover:bg-blue-50"
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import Home from "./webpages/home.jsx";
+import Home from "./webpages/Home.jsx";
 import Navbar from "./components/Navbar.jsx"; // Updated path
 import Stock_Report_Webpage from "./webpages/Stock_Report_Webpage.jsx";
 import Login from "./webpages/Login.jsx";
