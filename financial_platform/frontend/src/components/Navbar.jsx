@@ -38,6 +38,7 @@ const Navbar = () => {
             </ul>
           </li>
 
+          {currentUser && currentUser.username === "admin" && (
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer relative group">
             Admin
             <ul className="absolute left-0 mt-5 w-40 bg-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -46,6 +47,7 @@ const Navbar = () => {
               </li>
             </ul>
           </li>
+          )}
 
           {/* Auth Section */}
           {currentUser ? (
