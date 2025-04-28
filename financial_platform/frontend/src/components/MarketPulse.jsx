@@ -22,6 +22,8 @@ const MarketPulseDashboard = () => {
   const [timeRange, setTimeRange] = useState("1M");
   const [displayData, setDisplayData] = useState([]);
   const { currentUser } = useAuth();
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {}, [currentUser]);
 
@@ -36,7 +38,6 @@ const MarketPulseDashboard = () => {
    * Hit your real Flask (or other) backend to get market pulse data.
    */
   const fetchMarketData = async () => {
-    
     const API_URL = import.meta.env.VITE_API_URL;
     setIsLoading(true);
     try {
@@ -154,562 +155,569 @@ const MarketPulseDashboard = () => {
 
   return (
     <>
-  {currentUser && currentUser.username === "admin" && (
-    <div className="flex flex-col space-y-4 p-4 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-        <h1 className="text-2xl font-bold">Market Pulse Dashboard</h1>
+      {currentUser && currentUser.username === "admin" && (
+        <div className="flex flex-col space-y-4 p-4 max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+            <h1 className="text-2xl font-bold">Market Pulse Dashboard</h1>
 
-        {/* Index Tabs */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          {indices.map((index) => (
-            <button
-              key={index.id}
-              onClick={() => setActiveIndex(index.id)}
-              className={`px-3 py-2 text-sm font-medium rounded-md transition ${
-                activeIndex === index.id
-                  ? "bg-white text-blue-600 shadow"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {index.name}
-            </button>
-          ))}
-        </div>
-      </div>
+            {/* Index Tabs */}
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+              {indices.map((index) => (
+                <button
+                  key={index.id}
+                  onClick={() => setActiveIndex(index.id)}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition ${
+                    activeIndex === index.id
+                      ? "bg-white text-blue-600 shadow"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {index.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Time range selector */}
-      <div className="flex justify-end">
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          {["1W", "1M", "3M", "YTD"].map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`px-4 py-2 text-sm font-medium border ${
-                timeRange === range
-                  ? "bg-blue-500 text-white border-blue-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-              } ${range === "1W" ? "rounded-l-lg" : ""} ${
-                range === "YTD" ? "rounded-r-lg" : ""
-              }`}
-            >
-              {range}
-            </button>
-          ))}
-        </div>
-      </div>
+          {/* Time range selector */}
+          <div className="flex justify-end">
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              {["1W", "1M", "3M", "YTD"].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-4 py-2 text-sm font-medium border ${
+                    timeRange === range
+                      ? "bg-blue-500 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                  } ${range === "1W" ? "rounded-l-lg" : ""} ${
+                    range === "YTD" ? "rounded-r-lg" : ""
+                  }`}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Display data points count */}
-      {!isLoading && !error && displayData.length > 0 && (
-        <div className="text-sm text-gray-500 text-right">
-          {getDataPointsLabel()} for {getActiveIndexName()}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p>Loading market data for {getActiveIndexName()}...</p>
-        </div>
-      ) : error ? (
-        <div className="flex justify-center items-center h-64 text-red-500">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <p>{error}</p>
-        </div>
-      ) : (
-        <>
-          {/* --- SUMMARY CARDS --- */}
-          {summaryMetrics && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* CARD 1: New Highs/Lows */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="pb-2 border-b">
-                  <h3 className="text-base font-medium">New Highs/Lows</h3>
-                </div>
-                <div className="pt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* New Highs */}
-                    <div className="flex flex-col">
-                      <div className="text-2xl font-bold">
-                        {summaryMetrics.newHighs}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        {summaryMetrics.newHighsChange > 0 ? (
-                          <>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-green-500 mr-1"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <span className="text-green-500">
-                              +{summaryMetrics.newHighsChange}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-red-500 mr-1"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <span className="text-red-500">
-                              {summaryMetrics.newHighsChange}
-                            </span>
-                          </>
-                        )}
-                        <span className="ml-1 text-gray-500">New Highs</span>
-                      </div>
-                    </div>
-
-                    {/* New Lows */}
-                    <div className="flex flex-col">
-                      <div className="text-2xl font-bold">
-                        {summaryMetrics.newLows}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        {summaryMetrics.newLowsChange > 0 ? (
-                          <>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-red-500 mr-1"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <span className="text-red-500">
-                              +{summaryMetrics.newLowsChange}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-green-500 mr-1"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <span className="text-green-500">
-                              {summaryMetrics.newLowsChange}
-                            </span>
-                          </>
-                        )}
-                        <span className="ml-1 text-gray-500">New Lows</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 2: Advances/Declines */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="pb-2 border-b">
-                  <h3 className="text-base font-medium">Advances/Declines</h3>
-                </div>
-                <div className="pt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <div className="text-2xl font-bold">
-                        {summaryMetrics.advanced}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-green-500 mr-1"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586l3.293-3.293A1 1 0 0114 7z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-gray-500">Advanced</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col">
-                      <div className="text-2xl font-bold">
-                        {summaryMetrics.declined}
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-red-500 mr-1"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M12 13a1 1 0 100 2h5a1 1 0 001-1v-5a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586l-4.293-4.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414l3.293 3.293A1 1 0 0014 13z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-gray-500">Declined</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 3: A-D Spread */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="pb-2 border-b">
-                  <h3 className="text-base font-medium">A-D Spread</h3>
-                </div>
-                <div className="pt-4">
-                  <div className="flex flex-col">
-                    <div className="text-2xl font-bold">
-                      {summaryMetrics.adSpread}
-                    </div>
-                    <div className="flex items-center text-sm">
-                      {summaryMetrics.adSpreadChange > 0 ? (
-                        <>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 text-green-500 mr-1"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="text-green-500">
-                            +{summaryMetrics.adSpreadChange}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 text-red-500 mr-1"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="text-red-500">
-                            {summaryMetrics.adSpreadChange}
-                          </span>
-                        </>
-                      )}
-                      <span className="ml-1 text-gray-500">
-                        from previous day
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Display data points count */}
+          {!isLoading && !error && displayData.length > 0 && (
+            <div className="text-sm text-gray-500 text-right">
+              {getDataPointsLabel()} for {getActiveIndexName()}
             </div>
           )}
 
-          {/* --- CHARTS --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* CHART 1: New Highs vs New Lows */}
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="border-b pb-2">
-                <h3 className="font-medium">New Highs vs New Lows</h3>
-              </div>
-              <div className="h-64 pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={displayData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="newHighs"
-                      stroke="#22c55e"
-                      name="New Highs"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="newLows"
-                      stroke="#ef4444"
-                      name="New Lows"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p>Loading market data for {getActiveIndexName()}...</p>
             </div>
-
-            {/* CHART 2: Daily Rate of Change in New Highs */}
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="border-b pb-2">
-                <h3 className="font-medium">
-                  Daily Rate of Change in New Highs
-                </h3>
-              </div>
-              <div className="h-64 pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={displayData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="10 10" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      dataKey="newHighRateOfChange"
-                      fill="#3b82f6"
-                      name="Rate of Change (%)"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          ) : error ? (
+            <div className="flex justify-center items-center h-64 text-red-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p>{error}</p>
             </div>
+          ) : (
+            <>
+              {/* --- SUMMARY CARDS --- */}
+              {summaryMetrics && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* CARD 1: New Highs/Lows */}
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="pb-2 border-b">
+                      <h3 className="text-base font-medium">New Highs/Lows</h3>
+                    </div>
+                    <div className="pt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* New Highs */}
+                        <div className="flex flex-col">
+                          <div className="text-2xl font-bold">
+                            {summaryMetrics.newHighs}
+                          </div>
+                          <div className="flex items-center text-sm">
+                            {summaryMetrics.newHighsChange > 0 ? (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-green-500 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span className="text-green-500">
+                                  +{summaryMetrics.newHighsChange}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-red-500 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span className="text-red-500">
+                                  {summaryMetrics.newHighsChange}
+                                </span>
+                              </>
+                            )}
+                            <span className="ml-1 text-gray-500">
+                              New Highs
+                            </span>
+                          </div>
+                        </div>
 
-            {/* CHART 3: Advance-Decline Line */}
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="border-b pb-2">
-                <h3 className="font-medium">Advance-Decline Line</h3>
-              </div>
-              <div className="h-64 pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={displayData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="cumulativeADLine"
-                      stroke="#8884d8"
-                      name="A-D Line"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* CHART 4: Acceleration of New Highs */}
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="border-b pb-2">
-                <h3 className="font-medium">Acceleration of New Highs</h3>
-              </div>
-              <div className="h-64 pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={displayData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      dataKey="acceleration"
-                      fill="#a855f7"
-                      name="Acceleration"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* --- DATA TABLE WITH PAGINATION (10 rows per page) --- */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="border-b pb-2 flex justify-between items-center">
-              <h3 className="font-medium">
-                {getActiveIndexName()} Market Breadth Data
-              </h3>
-              <span className="text-sm text-gray-500">
-                {timeRange === "1W"
-                  ? "Last 7 days"
-                  : timeRange === "1M"
-                  ? "Last 30 days"
-                  : timeRange === "3M"
-                  ? "Last 90 days"
-                  : "Year to date"}
-              </span>
-            </div>
-            <div className="pt-4">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        New Highs
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        New Lows
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Advanced
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Declined
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Unchanged
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        A-D Spread
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedData.map((day, index) => (
-                      <tr
-                        key={index}
-                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.date}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.newHighs}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.newLows}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.advanced}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.declined}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.unchanged}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {day.adSpread}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Controls */}
-              <div className="flex items-center justify-between mt-4 border-t pt-4">
-                <div className="text-sm text-gray-500">
-                  Showing{" "}
-                  {Math.min(
-                    (currentPage - 1) * rowsPerPage + 1,
-                    displayData.length
-                  )}{" "}
-                  to {Math.min(currentPage * rowsPerPage, displayData.length)}{" "}
-                  of {displayData.length} entries
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded border ${
-                      currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-blue-500 hover:bg-blue-50"
-                    }`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                  <div className="flex items-center bg-white border rounded px-3 py-1">
-                    <span className="text-sm">
-                      {currentPage} of {totalPages}
-                    </span>
+                        {/* New Lows */}
+                        <div className="flex flex-col">
+                          <div className="text-2xl font-bold">
+                            {summaryMetrics.newLows}
+                          </div>
+                          <div className="flex items-center text-sm">
+                            {summaryMetrics.newLowsChange > 0 ? (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-red-500 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span className="text-red-500">
+                                  +{summaryMetrics.newLowsChange}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-green-500 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span className="text-green-500">
+                                  {summaryMetrics.newLowsChange}
+                                </span>
+                              </>
+                            )}
+                            <span className="ml-1 text-gray-500">New Lows</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded border ${
-                      currentPage === totalPages
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-blue-500 hover:bg-blue-50"
-                    }`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+
+                  {/* CARD 2: Advances/Declines */}
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="pb-2 border-b">
+                      <h3 className="text-base font-medium">
+                        Advances/Declines
+                      </h3>
+                    </div>
+                    <div className="pt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                          <div className="text-2xl font-bold">
+                            {summaryMetrics.advanced}
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-green-500 mr-1"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586l3.293-3.293A1 1 0 0114 7z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            <span className="text-gray-500">Advanced</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <div className="text-2xl font-bold">
+                            {summaryMetrics.declined}
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-red-500 mr-1"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M12 13a1 1 0 100 2h5a1 1 0 001-1v-5a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586l-4.293-4.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414l3.293 3.293A1 1 0 0014 13z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            <span className="text-gray-500">Declined</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD 3: A-D Spread */}
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="pb-2 border-b">
+                      <h3 className="text-base font-medium">A-D Spread</h3>
+                    </div>
+                    <div className="pt-4">
+                      <div className="flex flex-col">
+                        <div className="text-2xl font-bold">
+                          {summaryMetrics.adSpread}
+                        </div>
+                        <div className="flex items-center text-sm">
+                          {summaryMetrics.adSpreadChange > 0 ? (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 text-green-500 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              <span className="text-green-500">
+                                +{summaryMetrics.adSpreadChange}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 text-red-500 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              <span className="text-red-500">
+                                {summaryMetrics.adSpreadChange}
+                              </span>
+                            </>
+                          )}
+                          <span className="ml-1 text-gray-500">
+                            from previous day
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- CHARTS --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* CHART 1: New Highs vs New Lows */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="border-b pb-2">
+                    <h3 className="font-medium">New Highs vs New Lows</h3>
+                  </div>
+                  <div className="h-64 pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={displayData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="newHighs"
+                          stroke="#22c55e"
+                          name="New Highs"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="newLows"
+                          stroke="#ef4444"
+                          name="New Lows"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* CHART 2: Daily Rate of Change in New Highs */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="border-b pb-2">
+                    <h3 className="font-medium">
+                      Daily Rate of Change in New Highs
+                    </h3>
+                  </div>
+                  <div className="h-64 pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={displayData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="10 10" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey="newHighRateOfChange"
+                          fill="#3b82f6"
+                          name="Rate of Change (%)"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* CHART 3: Advance-Decline Line */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="border-b pb-2">
+                    <h3 className="font-medium">Advance-Decline Line</h3>
+                  </div>
+                  <div className="h-64 pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={displayData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="cumulativeADLine"
+                          stroke="#8884d8"
+                          name="A-D Line"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* CHART 4: Acceleration of New Highs */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="border-b pb-2">
+                    <h3 className="font-medium">Acceleration of New Highs</h3>
+                  </div>
+                  <div className="h-64 pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={displayData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey="acceleration"
+                          fill="#a855f7"
+                          name="Acceleration"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </>
+
+              {/* --- DATA TABLE WITH PAGINATION (10 rows per page) --- */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <div className="border-b pb-2 flex justify-between items-center">
+                  <h3 className="font-medium">
+                    {getActiveIndexName()} Market Breadth Data
+                  </h3>
+                  <span className="text-sm text-gray-500">
+                    {timeRange === "1W"
+                      ? "Last 7 days"
+                      : timeRange === "1M"
+                      ? "Last 30 days"
+                      : timeRange === "3M"
+                      ? "Last 90 days"
+                      : "Year to date"}
+                  </span>
+                </div>
+                <div className="pt-4">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            New Highs
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            New Lows
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Advanced
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Declined
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Unchanged
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            A-D Spread
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {paginatedData.map((day, index) => (
+                          <tr
+                            key={index}
+                            className={
+                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            }
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.date}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.newHighs}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.newLows}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.advanced}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.declined}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.unchanged}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {day.adSpread}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between mt-4 border-t pt-4">
+                    <div className="text-sm text-gray-500">
+                      Showing{" "}
+                      {Math.min(
+                        (currentPage - 1) * rowsPerPage + 1,
+                        displayData.length
+                      )}{" "}
+                      to{" "}
+                      {Math.min(currentPage * rowsPerPage, displayData.length)}{" "}
+                      of {displayData.length} entries
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded border ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white text-blue-500 hover:bg-blue-50"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                      <div className="flex items-center bg-white border rounded px-3 py-1">
+                        <span className="text-sm">
+                          {currentPage} of {totalPages}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1 rounded border ${
+                          currentPage === totalPages
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white text-blue-500 hover:bg-blue-50"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
-    </div>
-  )}
-  </>
+    </>
   );
 };
 
