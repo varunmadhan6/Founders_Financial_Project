@@ -31,8 +31,7 @@ const StockInfo = () => {
     setStockData([]);
 
     try {
-      // Hardcoded base URL instead of environment variable
-      const baseUrl = import.meta.env.API_URL || "http://127.0.0.1:5000";
+      const baseUrl = import.meta.env.API_URL;
 
       const response = await fetch(`${baseUrl}/stocks/add`, {
         method: "POST",
