@@ -32,11 +32,13 @@ const MarketPulseDashboard = () => {
    * Hit your real Flask (or other) backend to get market pulse data.
    */
   const fetchMarketData = async () => {
+    
+    const API_URL = import.meta.env.VITE_API_URL;
     setIsLoading(true);
     try {
       // Add the timeRange as a query parameter
       const response = await fetch(
-        `http://127.0.0.1:5000/api/stock/api/market-pulse?range=${timeRange}`
+        `${API_URL}/api/stock/api/market-pulse?range=${timeRange}`
       );
       console.log("Response:", response);
       if (!response.ok) {

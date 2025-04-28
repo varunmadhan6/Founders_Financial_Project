@@ -32,7 +32,7 @@ const StockInfo = () => {
 
     try {
       // Hardcoded base URL instead of environment variable
-      const baseUrl = "http://127.0.0.1:5000";
+      const baseUrl = import.meta.env.API_URL || "http://127.0.0.1:5000";
 
       const response = await fetch(`${baseUrl}/stocks/add`, {
         method: "POST",

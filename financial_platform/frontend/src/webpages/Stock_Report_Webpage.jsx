@@ -180,6 +180,7 @@ export default function Stock_Report_Webpage() {
 
   // Fetch stock data from API
   async function fetchStockData(symbol, period) {
+    const API_URL = import.meta.env.VITE_API_URL; 
     setLoading(true);
     setError("");
     setIndicatorData([]);
@@ -187,7 +188,7 @@ export default function Stock_Report_Webpage() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/stock_report/getStockHistory?symbol=${symbol}&period=${period}`
+        `${API_URL}/api/stock_report/getStockHistory?symbol=${symbol}&period=${period}`
       );
       const data = await response.json();
 
