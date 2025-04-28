@@ -24,6 +24,7 @@ const MarketPulseDashboard = () => {
   const { currentUser } = useAuth();
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [indices, setIndices] = useState([]);
 
   useEffect(() => {}, [currentUser]);
 
