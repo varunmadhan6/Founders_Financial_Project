@@ -11,6 +11,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useAuth } from "../contexts/AuthContext";
 
 const MarketPulseDashboard = () => {
   // Add index state
@@ -20,20 +21,11 @@ const MarketPulseDashboard = () => {
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("1M");
   const [displayData, setDisplayData] = useState([]);
+  const { currentUser } = useAuth();
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  useEffect(() => {}, [currentUser]);
 
-  // Index options
-  const indices = [
-    { id: "SP500", name: "S&P 500" },
-    { id: "NASDAQ", name: "NASDAQ" },
-    { id: "NYSE", name: "NYSE" },
-    { id: "DOW", name: "Dow Jones" },
-  ];
-
-  // Fetch fresh data whenever the timeRange or activeIndex changes
+  // Fetch fresh data whenever the timeRange changes
   useEffect(() => {
     fetchMarketData();
     // Reset to first page when timeRange or index changes
@@ -44,11 +36,13 @@ const MarketPulseDashboard = () => {
    * Hit your real Flask (or other) backend to get market pulse data.
    */
   const fetchMarketData = async () => {
+    
+    const API_URL = import.meta.env.VITE_API_URL;
     setIsLoading(true);
     try {
       // Add the timeRange and index as query parameters
       const response = await fetch(
-        `http://127.0.0.1:5000/api/stock/api/market-pulse?range=${timeRange}&index=${activeIndex}`
+        `${API_URL}/api/stock/api/market-pulse?range=${timeRange}`
       );
       console.log("Response:", response);
       if (!response.ok) {
@@ -159,6 +153,8 @@ const MarketPulseDashboard = () => {
   };
 
   return (
+    <>
+  {currentUser && currentUser.username === "admin" && (
     <div className="flex flex-col space-y-4 p-4 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
         <h1 className="text-2xl font-bold">Market Pulse Dashboard</h1>
@@ -712,6 +708,8 @@ const MarketPulseDashboard = () => {
         </>
       )}
     </div>
+  )}
+  </>
   );
 };
 
