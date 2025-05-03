@@ -18,7 +18,7 @@ const Navbar = () => {
         </Link>
         <ul className="hidden xl:flex items-center gap-12 font-semibold text-base text-white">
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
-            Mission
+            <Link to="/mission">Mission</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
             Team
