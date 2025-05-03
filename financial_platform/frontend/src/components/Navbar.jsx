@@ -34,7 +34,7 @@ const Navbar = () => {
           } xl:flex flex-col xl:flex-row items-center gap-6 font-semibold text-base text-white absolute xl:static top-16 left-0 w-full xl:w-auto bg-gray-900 xl:bg-transparent p-4 xl:p-0`}
         >
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer">
-            <Link to="/mission">Mission</Link>
+            <Link to="/mission" onClick={() => setIsMenuOpen(false)}>Mission</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
               <Link to="/team">Team</Link>
@@ -46,7 +46,7 @@ const Navbar = () => {
                 Newsletter
               </li>
               <li className="p-2 hover:bg-sky-400 cursor-pointer">
-                <Link to="/stock-report">Company Stocks</Link>
+                <Link to="/stock-report" >Company Stocks</Link>
               </li>
               <li className="p-2 hover:bg-sky-400 cursor-pointer">
                 Personal Portfolio
@@ -59,7 +59,7 @@ const Navbar = () => {
               Admin
               <ul className="absolute left-0 mt-5 w-40 bg-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <li className="p-2 hover:bg-sky-400 cursor-pointer">
-                  <Link to="/market-pulse">Market Pulse</Link>
+                  <Link to="/market-pulse" onClick={() => setIsMenuOpen(false)}>Market Pulse</Link>
                 </li>
               </ul>
             </li>
@@ -86,12 +86,14 @@ const Navbar = () => {
               <Link
                 to="/login"
                 className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Login
               </Link>
               <Link
                 to="/signup"
                 className="p-3 bg-sky-400 hover:bg-sky-500 text-white rounded transition-all cursor-pointer"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Sign Up
               </Link>
