@@ -4,7 +4,7 @@ const Team = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section - Changed from blue to gray */}
-      <div className="bg-white text-gray-800 py-16">
+      <div className="bg-gray-300 text-gray-800 py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">
             Meet Our Leadership Team
