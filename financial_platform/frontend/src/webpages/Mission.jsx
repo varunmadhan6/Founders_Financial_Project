@@ -2,7 +2,7 @@ import React from "react";
 
 const Mission = () => {
   return (
-    <div className="relative w-full h-screen bg-cover bg-center" style={{ backgroundImage: "url(public/background.png)" }}>
+    <div className="relative w-full h-screen bg-cover bg-center" style={{ backgroundImage: "url(https://images.ctfassets.net/1aemqu6a6t65/1NNaQlkh6PCMQonW9gzPG2/1fc6b2a5ede1e03d4791c1f7250039bc/new-york-stock-exchange-julienne-schaer-077)" }}>
       {/* Overlay */}
       <div className="bg-black/60 absolute top-0 left-0 w-full h-full" />
 
