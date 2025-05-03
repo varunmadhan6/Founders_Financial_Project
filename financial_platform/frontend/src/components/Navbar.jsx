@@ -37,7 +37,7 @@ const Navbar = () => {
             <Link to="/mission" onClick={() => setIsMenuOpen(false)}>Mission</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
-              <Link to="/team">Team</Link>
+              <Link to="/team" onClick={() => setIsMenuOpen(false)}>Team</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer relative group">
             Services
@@ -46,7 +46,7 @@ const Navbar = () => {
                 Newsletter
               </li>
               <li className="p-2 hover:bg-sky-400 cursor-pointer">
-                <Link to="/stock-report" >Company Stocks</Link>
+                <Link to="/stock-report" onClick={() => setIsMenuOpen(false)}>Company Stocks</Link>
               </li>
               <li className="p-2 hover:bg-sky-400 cursor-pointer">
                 Personal Portfolio
