@@ -55,7 +55,7 @@ class HistoricalStockService:
         insert/update the market_pulse table. Finally, if there are more than 365 valid weekday entries,
         delete the oldest valid row.
         """
-        today_date = date(2025, 5, 2)
+        today_date = datetime.now().date()
 
         total_new_highs = 0
         total_new_lows = 0
@@ -225,8 +225,8 @@ class HistoricalStockService:
         A dictionary mapping each processed date (as an ISO string) to its aggregated metrics.
         """
         # Define the date range for backfilling.
-        start_date = '2025-03-25'
-        end_date = '2025-03-26'
+        start_date = '2025-04-25'
+        end_date = '2025-05-02'
         
         # Query the database for distinct dates in stock_data within the given range.
         conn = get_db_connection()
