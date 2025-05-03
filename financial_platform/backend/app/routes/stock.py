@@ -38,7 +38,7 @@ def update_historical_data():
         symbols = request.json.get("symbols", [])
         if not symbols:
             return jsonify({"error": "No stock symbols provided"}), 400
-        result = HistoricalStockService.backfill_market_pulse(symbols)
+        result = HistoricalStockService.insert_day_range_data_with_movement(symbols)
         return jsonify({
             "message": "Today's market pulse and current day stock data updated successfully.",
             "market_pulse": result
