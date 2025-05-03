@@ -32,13 +32,14 @@ def add_stocks():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 @stock_bp.route('/stocks/history/update', methods=['POST'])
 def update_historical_data():
     try:
         symbols = request.json.get("symbols", [])
         if not symbols:
             return jsonify({"error": "No stock symbols provided"}), 400
-        result = HistoricalStockService.insert_day_range_data_with_movement(symbols)
+        result = HistoricalStockService.insert_current_day_data_with_movement(symbols)
         return jsonify({
             "message": "Today's market pulse and current day stock data updated successfully.",
             "market_pulse": result
