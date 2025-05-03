@@ -1,24 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import logo from "../../public/logo.png";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <nav>
       <header className="flex justify-between items-center text-black py-3 px-8 md:px-32 bg-gray-900 drop-shadow-md relative z-50">
+        {/* Logo */}
         <Link to="/">
           <img
             src={logo}
-            alt=""
+            alt="Logo"
             className="w-12 hover:scale-105 transition-all rounded-full border-2 border-white"
           />
         </Link>
-        <ul className="hidden xl:flex items-center gap-12 font-semibold text-base text-white">
-          <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
-            Mission
+
+        {/* Hamburger Menu for Mobile */}
+        <button
+          className="xl:hidden text-white text-2xl"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          ☰
+        </button>
+
+        {/* Navigation Links */}
+        <ul
+          className={`${
+            isMenuOpen ? "flex" : "hidden"
+          } xl:flex flex-col xl:flex-row items-center gap-6 font-semibold text-base text-white absolute xl:static top-16 left-0 w-full xl:w-auto bg-gray-900 xl:bg-transparent p-4 xl:p-0`}
+        >
+          <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer">
+            <Link to="/mission">Mission</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
               <Link to="/team">Team</Link>
@@ -51,7 +67,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           {currentUser ? (
-            <li className="flex items-center gap-4">
+            <li className="flex flex-col xl:flex-row items-center gap-4">
               <Link
                 to="/profile"
                 className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer"
@@ -66,7 +82,7 @@ const Navbar = () => {
               </button>
             </li>
           ) : (
-            <li className="flex items-center gap-4">
+            <li className="flex flex-col xl:flex-row items-center gap-4">
               <Link
                 to="/login"
                 className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer"

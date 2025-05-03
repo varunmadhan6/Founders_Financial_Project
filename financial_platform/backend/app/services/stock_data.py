@@ -55,7 +55,7 @@ class HistoricalStockService:
         insert/update the market_pulse table. Finally, if there are more than 365 valid weekday entries,
         delete the oldest valid row.
         """
-        today_date = datetime.now().date()
+        today_date = date(2025, 5, 2)
 
         total_new_highs = 0
         total_new_lows = 0
