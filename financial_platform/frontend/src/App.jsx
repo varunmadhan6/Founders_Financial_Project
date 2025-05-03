@@ -1,6 +1,7 @@
 import Home from "./webpages/Home.jsx";
 import Navbar from "./components/Navbar.jsx"; // Updated path
 import Stock_Report_Webpage from "./webpages/Stock_Report_Webpage.jsx";
+import Team from "./webpages/Team.jsx"
 import Login from "./webpages/Login.jsx";
 import Signup from "./webpages/Signup.jsx";
 import Profile from "./webpages/Profile.jsx";
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/market-pulse" element={<MarketPulseDashboard />} />
+          <Route path="/team" element={<Team />} />
         </Routes>
       </>
     </AuthProvider>
