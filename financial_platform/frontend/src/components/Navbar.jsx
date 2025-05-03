@@ -36,8 +36,8 @@ const Navbar = () => {
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer">
             <Link to="/mission">Mission</Link>
           </li>
-          <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer">
-            Team
+          <li className="p-3 hover:bg-sky-400 hover:text-white rounded md transition-all cursor-pointer">
+              <Link to="/team">Team</Link>
           </li>
           <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer relative group">
             Services
