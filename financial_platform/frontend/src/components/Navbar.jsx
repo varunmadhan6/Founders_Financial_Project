@@ -7,7 +7,8 @@ const Navbar = () => {
   const { currentUser, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false); // State for Services dropdown
-
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  
   return (
     <nav>
       <header className="flex justify-between items-center text-black py-3 px-8 md:px-32 bg-gray-900 drop-shadow-md relative z-50">
@@ -51,21 +52,31 @@ const Navbar = () => {
                 <li className="p-2 hover:bg-sky-400 cursor-pointer">
                   <Link to="/stock-report" onClick={() => setIsMenuOpen(false)}>Company Stocks</Link>
                 </li>
-                <li className="p-2 hover:bg-sky-400 cursor-pointer">
-                  Personal Portfolio
-                </li>
               </ul>
             )}
           </li>
 
           {currentUser && currentUser.username === "admin" && (
-            <li className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer relative group">
+            <li 
+              className="p-3 hover:bg-sky-400 hover:text-white rounded transition-all cursor-pointer relative"
+              onClick={() => setIsAdminOpen(!isAdminOpen)}
+            >
               Admin
-              <ul className="absolute left-0 mt-5 w-40 bg-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <li className="p-2 hover:bg-sky-400 cursor-pointer">
-                  <Link to="/market-pulse" onClick={() => setIsMenuOpen(false)}>Market Pulse</Link>
-                </li>
-              </ul>
+              {isAdminOpen && (
+                <ul className="absolute left-0 mt-2 w-40 bg-gray-900 rounded shadow-lg z-50">
+                  <li className="p-2 hover:bg-sky-400 cursor-pointer">
+                    <Link 
+                      to="/market-pulse" 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsAdminOpen(false);
+                      }}
+                    >
+                      Market Pulse
+                    </Link>
+                  </li>
+                </ul>
+              )}
             </li>
           )}
 

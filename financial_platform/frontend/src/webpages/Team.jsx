@@ -1,22 +1,19 @@
 import React from 'react';
 
 const Team = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Hero Section - Changed from blue to gray */}
-      <div className="bg-gray-300 text-gray-800 py-16">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">
-            Meet Our Leadership Team
-          </h1>
-          <p className="text-xl text-center text-gray-600 max-w-2xl mx-auto">
-            Bringing together decades of experience in finance, technology, and market analysis
-          </p>
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Hero Section - Simplified */}
+        <div className="py-16">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-900">
+              Meet Our Leadership Team
+            </h1>
+          </div>
         </div>
-      </div>
 
       {/* Team Section */}
-      <div className="py-24 sm:py-32">
+      <div className="py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:max-w-4xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
