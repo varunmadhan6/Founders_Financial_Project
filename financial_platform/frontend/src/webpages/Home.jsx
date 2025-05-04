@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -91,12 +92,14 @@ const Home = () => {
               portfolio, and advice from verified financial advisors.
             </p>
             <div>
-              <button className="bg-white text-black font-sans hover:bg-gray-200 transition-all">
-                Sign Up Now
-              </button>
+              <Link
+                to="/signup"
+                className="bg-white text-black font-sans hover:bg-gray-200 transition-all px-5 py-3 rounded-full inline-block"
+              >
+                Get Started
+              </Link>
             </div>
           </div>
-
           {/* Right Column - Stock Graph */}
           <div className="bg-gray-900/80 rounded-lg p-4 shadow-lg transform translate-x-12 md:mt-15">
             <h2 className="text-xl font-bold mb-2 text-center">
